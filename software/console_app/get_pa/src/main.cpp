@@ -63,6 +63,7 @@ static bool gReadTemperature = false;
 static bool gReadHumidity = false;
 static bool gReadPressure = true;
 static bool gJsonFormat = false;
+static bool gReadName = false;
 
 static const char *KStrNan = "NaN";
 
@@ -129,6 +130,7 @@ static void ShowHelp (void)
                  "  -t, --temperature               Read Temperature (default)\n"
                  "  -h, --humidity                  Read Humidity\n"
                  "  -p, --pressure                  Read Pressure\n"
+                 "  -n, --name                      Read Sensor name\n"
                  "  -a, --all                       Read Temperature, Humidity and Pressure\n"
                  "  -j, --json                      Result in JSON string\n"
                  );
@@ -147,6 +149,7 @@ static struct option KLongOptions[] =
     { "temperature", no_argument, NULL, 't'},
     { "humidity", no_argument, NULL, 'h'},
     { "pressure", no_argument, NULL, 'p'},
+    { "name", no_argument, NULL, 'n'},
     { "all", no_argument, NULL, 'a'},
     { "json", no_argument, NULL, 'j'},
     { NULL, 0, NULL, 0}
@@ -158,7 +161,7 @@ static int ExtractParam (void)
 
     while (1)
     {
-        i = getopt_long (gArgCnt, gArgList, "vd:thpaj", KLongOptions, NULL);
+        i = getopt_long (gArgCnt, gArgList, "vd:thpajn", KLongOptions, NULL);
         if (i == EOF)
             break;
         switch (i)
@@ -167,6 +170,7 @@ static int ExtractParam (void)
                 gReadTemperature    = true;
                 gReadHumidity       = false;
                 gReadPressure       = false;
+                gReadName           = false;
                 break;
 
             case 'h':
@@ -181,10 +185,18 @@ static int ExtractParam (void)
                 gReadPressure       = true;
                 break;
 
+            case 'n':
+                gReadTemperature    = false;
+                gReadHumidity       = false;
+                gReadPressure       = false;
+                gReadName           = true;
+                break;
+
             case 'a':
                 gReadTemperature    = true;
                 gReadHumidity       = true;
                 gReadPressure       = true;
+                gReadName           = true;
                 break;
 
             case 'j':
@@ -379,6 +391,78 @@ static float GetPressure (void)
 }
 
 //==========================================================================
+// Get Name
+//==========================================================================
+static int GetName (char *aName, int aSize)
+{
+    unsigned char rx_buf[128];
+    int rx_len;
+    int idx;
+
+    gSerial.Write ((const unsigned char *)"\n", 1);
+    gSerial.Flush ();
+
+    if (gSerial.Write ((const unsigned char *)"GN\n", 3) < 0)
+    {
+        if (gVerbose)
+        {
+            if (gSerial.ErrorMessage != NULL)
+                printf ("ERROR: %s\n", gSerial.ErrorMessage);
+            else
+                printf ("ERROR: Write\n");
+        }
+        return -1;
+    }
+
+#if (SYSTEM_MSW)
+        Sleep (1);
+#else
+        usleep (500000);
+#endif
+
+    memset (rx_buf, 0, sizeof (rx_buf));
+    rx_len = gSerial.Read (rx_buf, sizeof (rx_buf) - 1);
+    if (rx_len < 0)
+    {
+        if (gVerbose)
+        {
+            if (gSerial.ErrorMessage != NULL)
+                printf ("ERROR: %s\n", gSerial.ErrorMessage);
+            else
+                printf ("ERROR: Read\n");
+        }
+        return -1;
+    }
+
+    if (rx_len == 0)
+    {
+        if (gVerbose)
+            printf ("ERROR: No response.\n");
+        return -1;
+    }
+    rx_buf[rx_len] = 0;
+
+    // Trim tailing space and control codes
+    idx = strlen ((char *)rx_buf);
+    while (idx > 0)
+    {
+        idx --;
+        if (rx_buf[idx] == ' ')
+            rx_buf[idx] = 0;
+        else if ((rx_buf[idx] > 0) && (rx_buf[idx] < 0x20))
+            rx_buf[idx] = 0;
+        else
+            break;
+    }
+
+    memset (aName, 0, aSize);
+    strncpy (aName, (char *)rx_buf, aSize -1);
+
+    return (strlen (aName));
+}
+
+
+//==========================================================================
 //==========================================================================
 //==========================================================================
 //==========================================================================
@@ -390,9 +474,11 @@ int Go (void)
     float temperature = NAN;
     float humidity = NAN;
     float pressure = NAN;
+    char sensor_name[64];
     bool port_opened;
     std::string str;
-        
+     
+    memset (sensor_name , 0, sizeof (sensor_name));
 
     // Extract cmd-line parameter
     if (ExtractParam () == EXIT_FAILURE)
@@ -503,9 +589,34 @@ int Go (void)
         }
     }
 
+    // Read Name
+    if (gReadName)
+    {
+        strncpy (sensor_name, "UNKNOWN", sizeof (sensor_name) - 1);
+        if (port_opened)
+        {
+            if (GetName (sensor_name, sizeof (sensor_name)) < 0)
+            {
+                strncpy (sensor_name, "UNKNOWN", sizeof (sensor_name) - 1);
+            }
+        }
+        if (gJsonFormat)
+        {
+            if ((gReadTemperature) || (gReadHumidity) || (gReadPressure))
+                printf (", ");
+            printf ("\"name\": \"%s\"", sensor_name);
+        }
+        else
+        {
+            printf ("%s\n", sensor_name);
+        }
+
+    }
+
+
     // End of JSON
     if (gJsonFormat)
-        printf (" }");
+        printf (" }\n");
 
     //
     return EXIT_SUCCESS;
