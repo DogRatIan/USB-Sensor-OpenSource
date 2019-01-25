@@ -103,6 +103,44 @@ static void StringToUpper (char *aSrc)
     }
 }
 
+//==========================================================================
+//==========================================================================
+static void FixOldFloatString (char *aStr, int aLen) {
+    int i;
+    int int_part = 0;
+    int dec_part = 0;
+
+    // Find negative sign
+    for (i = 0; aStr[i]; i ++ ) {
+        if (aStr[i] == '-')
+            break;
+    }
+    if (aStr[i] == 0)
+        return;
+
+    // Find the .
+    for (i = 0; aStr[i]; i ++ ) {
+        if (aStr[i] == '.')
+            break;
+    }
+    int_part = atoi (aStr);
+    if (i == aLen) {
+    }
+    else {
+        dec_part = atoi (&aStr[i + 1]);
+    }
+
+    if (int_part < 0)
+        int_part *= -1;
+    if (dec_part < 0)
+        dec_part *= -1;
+    dec_part ++;
+    DEBUG_PRINTF ("int_part=%d\n", int_part);
+    DEBUG_PRINTF ("dec_part=%d\n", dec_part);
+
+    snprintf (aStr, aLen, "-%d.%02d", int_part, dec_part);
+}
+
 
 //==========================================================================
 // Show Program info
@@ -271,6 +309,8 @@ static float GetTemperature (void)
     }
     rx_buf[rx_len] = 0;
 
+    DEBUG_PRINTF ("rx_buf: %s", (char *)rx_buf);
+    FixOldFloatString ((char *)rx_buf, sizeof (rx_buf));
     f = atof ((char *)rx_buf);
 
     return f;
