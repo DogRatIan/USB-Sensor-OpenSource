@@ -36,19 +36,13 @@ Page {
     //==========================================================================
     // ToolBar
     //==========================================================================
-    header: ToolBar {
-        id: itemTopToolBar
-        ToolButton {
-            anchors.left: parent.left
-            anchors.verticalCenter: parent.verticalCenter
-            icon.source: "qrc:/assets/back-arrow.svg"
-            onClicked: navStack.pop ();
-        }
-        Label {
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.verticalCenter: parent.verticalCenter
-            text: rootPage.title
-        }
+    header: TitleBar {
+        titleText: rootPage.title
+
+        leftButtonVisible: true
+        leftButtonIconSource: "qrc:/assets/back-arrow.svg"
+        onLeftButtonClicked: navStack.pop ();
+
     }
 
     //==========================================================================

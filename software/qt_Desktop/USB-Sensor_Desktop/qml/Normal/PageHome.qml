@@ -22,8 +22,6 @@ Page {
     property bool hasHumidity: true
     property bool hasPressure: true
 
-    property var clickPos
-
     //==========================================================================
     // Functions
     //==========================================================================
@@ -40,43 +38,54 @@ Page {
     //==========================================================================
     // ToolBar
     //==========================================================================
-    header: ToolBar {
-        id: itemTopToolBar
+    header: TitleBar {
+        titleText: rootApp.title
 
-        Image {
-            id: imageAppIcon
-            anchors.left: parent.left
-            anchors.verticalCenter: parent.verticalCenter
-            source: "qrc:/assets/app_icon.png"
-            fillMode: Image.PreserveAspectFit
-            sourceSize.width: itemTopToolBar.height * 0.8
-            sourceSize.height: itemTopToolBar.height * 0.8
+        leftLogoVisible: true
+        leftLogoIconSource: "qrc:/assets/app_icon.png"
+        onLeftButtonClicked: drawer.open();
+
+        rightButtonVisible: true
+        rightButtonEnabled: !rootPage.portOpened
+        rightButtonIconSource: "qrc:/assets/settings-gears.svg"
+        onRightButtonClicked: navStack.push (pageConfig);
+    }
+
+    Drawer {
+        id: drawer
+        width: rootPage.width * 0.20
+        height: rootPage.height
+
+        background: Rectangle {
+            anchors.fill: parent
+            border.width: 1
+            border.color: "black"
         }
-        Label {
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.verticalCenter: parent.verticalCenter
-            text: rootApp.title
-        }
-        ToolButton {
-            id: buttonConfig
-            anchors.right: parent.right
-            anchors.verticalCenter: parent.verticalCenter
-            icon.source: "qrc:/assets/settings-gears.svg"
-            enabled: !rootPage.portOpened
-            onClicked: navStack.push (pageConfig);
-        }
-        MouseArea {
-            anchors.left: imageAppIcon.right
-            anchors.right: buttonConfig.left
-            anchors.top: parent.top
-            anchors.bottom: parent.bottom
-            onPressed: {
-                clickPos  = Qt.point(mouse.x,mouse.y)
+
+        Column {
+            anchors.fill: parent
+
+            Label {
+                text: qsTr ("MENU")
+                font.bold: true
+                width: parent.width
+                height: 30
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
             }
-            onPositionChanged: {
-                var delta = Qt.point(mouse.x-clickPos.x, mouse.y-clickPos.y)
-                rootApp.x += delta.x;
-                rootApp.y += delta.y;
+            Rectangle {
+                border.color: "black"
+                border.width: 1
+                height: 2
+                width: parent.width
+            }
+
+            ItemDelegate {
+                text: qsTr("Exit")
+                width: parent.width
+                onClicked: {
+                    Qt.quit();
+                }
             }
         }
     }
