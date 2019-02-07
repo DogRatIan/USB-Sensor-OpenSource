@@ -1,0 +1,15 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qtquickcontrols2.conf</file>
+        <file>qml/Main.qml</file>
+        <file>qml/Normal/Top.qml</file>
+        <file>qml/Normal/PageConfig.qml</file>
+        <file>qml/Normal/PageHome.qml</file>
+        <file>qml/LocalLib/DelayFunc.qml</file>
+        <file>assets/app_icon.svg</file>
+        <file>assets/back-arrow.svg</file>
+        <file>assets/settings-gears.svg</file>
+        <file>assets/app_icon.png</file>
+    </qresource>
+    <qresource prefix="/asset"/>
+</RCC>
