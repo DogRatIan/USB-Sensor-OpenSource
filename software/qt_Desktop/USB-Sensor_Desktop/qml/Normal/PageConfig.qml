@@ -148,7 +148,7 @@ Page {
                 onClicked: {
                     var selected_port = itemPortList.getItemAt(viewPortList.currentIndex);
                     console.log ("Set " + selected_port.name);
-                    rootTop.selectedPort = selected_port;
+                    rootApp.selectedPort = selected_port;
                     navStack.pop ();
 
                     itemConfig.setStringData ("portName", selected_port.name)

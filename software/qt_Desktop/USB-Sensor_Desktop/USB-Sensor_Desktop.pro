@@ -1,4 +1,4 @@
-QT += quick serialport sql
+QT += quick serialport sql charts
 CONFIG += c++11
 
 # The following define makes your compiler emit warnings if you use

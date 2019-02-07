@@ -1,20 +1,26 @@
 import QtQuick 2.11
 import QtQuick.Controls 2.4
 
+import com.dogratian.qml.Config 1.0
+import com.dogratian.qml.UsbSensor 1.0
+import com.dogratian.qml.Statistic 1.0
+
+
+
 ApplicationWindow {
     id: rootApp
-    width: 550
-    height: 550
-    minimumWidth: 550
-    minimumHeight: 550
+    width: 600
+    height: 600
+    minimumWidth: 600
+    minimumHeight: 600
     visible: true
     flags: Qt.FramelessWindowHint | Qt.Dialog
-//    flags: Qt.Dialog
     title: qsTr("DogRatIan USB-Sensor (Desktop)")
     font.family: "Verdana"
 
     // Properties
     property var viewMessageLog
+    property var selectedPort
 
     // Function - Append to message log
     function appendMessageToLog (aMsg) {
@@ -56,18 +62,9 @@ ApplicationWindow {
         dialogSystemMessage.open();
     }
 
-
-    // Models
-    ListModel {
-        id: listMessageLog
-        ListElement {
-            message: "Message log"
-        }
-    }
-
-    // Top toolbar
-
+    //==========================================================================
     // Visual area
+    //==========================================================================
     Rectangle {
         anchors.fill: parent
         border.width: 1
@@ -85,7 +82,9 @@ ApplicationWindow {
         }
     }
 
+    //==========================================================================
     // Busy indicator
+    //==========================================================================
     Rectangle {
         id: indicatorBusy
         visible: false
@@ -102,12 +101,9 @@ ApplicationWindow {
         }
     }
 
-    //
-    Component.onCompleted: {
-        startNormal ();
-    }
-
-    // Dialog
+    //==========================================================================
+    // Dialog - System Message
+    //==========================================================================
     Dialog {
         id: dialogSystemMessage
         title: "System Message"
@@ -134,4 +130,62 @@ ApplicationWindow {
             wrapMode: Text.WordWrap
         }
     }
+
+    //==========================================================================
+    // C++ Object
+    //==========================================================================
+    Config {
+        id: itemConfig
+        filename: "USB-Sensor_Desktop.conf"
+
+        onMessage: {
+            rootApp.appendMessageToLog (aMessage);
+        }
+        onErrorMessage: {
+            rootApp.showSystemMessage (qsTr ("ERROR"), aMessage);
+        }
+    }
+
+    UsbSensor {
+        id: itemUsbSensor
+        property string lastErrorMessage: " "
+
+        onMessage: {
+            rootApp.appendMessageToLog (aMessage);
+        }
+
+        onErrorMessage: {
+            console.log ("UsbSensor ERROR: " + aMessage);
+            lastErrorMessage = aMessage;
+        }
+    }
+
+    Statistic {
+        id: itemStatistic
+
+        onMessage: {
+            rootApp.appendMessageToLog (aMessage);
+        }
+        onErrorMessage: {
+            rootApp.showSystemMessage (qsTr ("ERROR"), aMessage);
+        }
+    }
+
+    //==========================================================================
+    // Models
+    //==========================================================================
+    ListModel {
+        id: listMessageLog
+        ListElement {
+            message: "Message log"
+        }
+    }
+
+    //==========================================================================
+    // Run on creation
+    //==========================================================================
+    Component.onCompleted: {
+        startNormal ();
+    }
+
 }

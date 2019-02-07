@@ -2,8 +2,8 @@ import QtQuick 2.11
 import QtQuick.Controls 2.4
 import QtQuick.Layouts 1.3
 import QtQuick.Controls.Material 2.3
+import QtCharts 2.2
 
-//import com.magnaconcept.qml.FakeILock 1.0
 import "../LocalLib" as LocalLib
 
 Page {
@@ -21,6 +21,9 @@ Page {
     property bool hasTemperature: true
     property bool hasHumidity: true
     property bool hasPressure: true
+    property bool sendToClipboard: false
+
+    property var arrayTemperature: []
 
     //==========================================================================
     // Functions
@@ -107,24 +110,42 @@ Page {
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.margins: 10
-                height: 50
+                height: 95
 
-                Row {
-                    spacing: 10
+                Grid {
                     anchors.top: parent.top
-                    anchors.bottom: parent.bottom
+                    anchors.left: parent.left
                     anchors.margins: 10
+                    columns: 2
+                    spacing: 5
 
                     Label {
+                        width: 120
+                        horizontalAlignment: Text.AlignRight
                         text: "Current Port:"
                     }
                     Label {
-                        text: selectedPort.name;
+                        text: rootApp.selectedPort.name
                     }
-                }
-                Label {
-                    anchors.bottom: parent.bottom
-                    text: "Device: " + deviceName
+                    Label {
+                        width: 120
+                        horizontalAlignment: Text.AlignRight
+                        text: "Device: "
+                    }
+                    Label {
+                        text: rootPage.deviceName
+                    }
+                    Label {
+                        text: " "
+                    }
+
+                    CheckBox  {
+                        text: "Send reading to clipboard"
+                        checked: rootPage.sendToClipboard
+                        onCheckedChanged: {
+                            rootPage.sendToClipboard = checked;
+                        }
+                    }
                 }
 
                 Button {
@@ -135,8 +156,8 @@ Page {
                     enabled: !portOpened
                     onClicked: {
                         buttonOpenPort.focus = true;
-                        if (selectedPort) {
-                            if (itemUsbSensor.open (selectedPort.name)) {
+                        if (rootApp.selectedPort) {
+                            if (itemUsbSensor.open (rootApp.selectedPort.name)) {
                                 portOpened = true;
                                 deviceName = itemUsbSensor.deviceId + " " + itemUsbSensor.deviceVersion;
                                 hasTemperature = itemUsbSensor.hasTemperature;
@@ -158,7 +179,7 @@ Page {
                     enabled: portOpened
                     onClicked: {
                         itemUsbSensor.close();
-                        rootApp.appendMessageToLog (selectedPort.name + " closed.");
+                        rootApp.appendMessageToLog (rootApp.selectedPort.name + " closed.");
                         portOpened = false;
                         deviceName = " ";
                         clearReading();
@@ -178,27 +199,66 @@ Page {
             Grid {
                 id: boxReading
                 anchors.horizontalCenter: parent.horizontalCenter
-//                anchors.left: parent.left
-//                anchors.right: parent.right
                 height: 40
                 columns: 2
                 spacing: 10
 
-                Label {
+                Row {
+                    width: 200
+                    height: 15
+                    spacing: 5
                     visible: hasTemperature
-                    width: 200
-                    text: "Temperature: " + temperature + " °C"
+
+                    Rectangle {
+                        height: 12
+                        width: 12
+                        border.width: 1
+                        color: "gold"
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+                    Label {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: "Temperature: " + temperature + " °C"
+                    }
                 }
-                Label {
+
+                Row {
+                    width: 200
+                    height: 15
+                    spacing: 5
                     visible: hasHumidity
-                    width: 200
-                    text: "Humidity: " + humidity + " %RH"
+
+                    Rectangle {
+                        height: 12
+                        width: 12
+                        border.width: 1
+                        color: "cyan"
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+                    Label {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: "Humidity: " + humidity + " %RH"
+                    }
                 }
-                Label {
+                Row {
+                    width: 200
+                    height: 15
+                    spacing: 5
                     visible: hasPressure
-                    width: 200
-                    text: "Pressure: " + pressure + " hPa"
+
+                    Rectangle {
+                        height: 12
+                        width: 12
+                        border.width: 1
+                        color: "greenyellow"
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+                    Label {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: "Pressure: " + pressure + " hPa"
+                    }
                 }
+
             }
 
             // Horizontal Line
@@ -209,6 +269,20 @@ Page {
                 color: Material.foreground
             }
 
+            // Chart
+            RollingChart {
+                id: chart
+                anchors.left: parent.left
+                anchors.right: parent.right
+                height: 240
+
+                lineTemperature.color: "gold"
+                lineTemperature.visible: hasTemperature
+                lineHumidity.color: "cyan"
+                lineHumidity.visible: hasHumidity
+                linePressure.color: "greenyellow"
+                linePressure.visible: hasPressure
+            }
         }
     }
 
@@ -218,7 +292,7 @@ Page {
     Component.onCompleted: {
         rootApp.appendMessageToLog (objectName + " created. ");
         clearReading();
-
+        chart.clearData();
     }
 
     //==========================================================================
@@ -226,14 +300,43 @@ Page {
     Timer {
         id: timerUpdateProcess
         repeat: true
-        interval: 5000
+        interval: 500
         running: rootPage.portOpened
         triggeredOnStart: true
+
+        property int lastUpdateTime: -1
+
+        onRunningChanged: {
+            lastUpdateTime = -1;
+        }
+
         onTriggered: {
+            var now = new Date();
+            var timestamp = parseInt(now.getTime() / 1000);
+
+            // Check crossing 5 second
+            if ((timestamp % 5) != 0)
+                return;
+            if ((timestamp / 5) == (lastUpdateTime / 5)) {
+                return;
+            }
+
+            lastUpdateTime = timestamp;
+            console.log ("Current s=" + timestamp);
+
             if (itemUsbSensor.update ()) {
                 temperature = itemUsbSensor.temperature;
                 humidity = itemUsbSensor.humidity;
                 pressure = itemUsbSensor.pressure / 100;
+
+                chart.rollData (temperature, humidity, pressure);
+
+                if (sendToClipboard) {
+                    console.log ("Send to clipboard.");
+                    var str_output = temperature.toFixed(2) + ", " + humidity.toFixed(2)
+                                        + ", " + pressure.toFixed(2) + ", " + timestamp;
+                    itemUsbSensor.sendToClipboard (str_output);
+                }
             }
             else {
                 clearReading();

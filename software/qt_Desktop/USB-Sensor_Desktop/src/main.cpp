@@ -1,4 +1,4 @@
-#include <QGuiApplication>
+#include <QApplication>
 #include <QQmlApplicationEngine>
 
 #include "qml_port_list.h"
@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
 {
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
-    QGuiApplication app(argc, argv);
+    QApplication app(argc, argv);
 
     qmlRegisterType <CPortList>("com.dogratian.qml.PortList", 1, 0, "PortList");
     qmlRegisterType <CConfig>("com.dogratian.qml.Config", 1, 0, "Config");

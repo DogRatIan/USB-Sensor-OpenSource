@@ -1,10 +1,6 @@
 import QtQuick 2.11
 import QtQuick.Controls 2.4
 
-import com.dogratian.qml.Config 1.0
-import com.dogratian.qml.UsbSensor 1.0
-import com.dogratian.qml.Statistic 1.0
-
 //
 Item {
     id: rootTop
@@ -13,8 +9,6 @@ Item {
     //==========================================================================
     // Properties
     //==========================================================================
-    property var selectedPort
-
 
     //==========================================================================
     // Stack View
@@ -92,45 +86,6 @@ Item {
         }
     }
 
-    //==========================================================================
-    // C++ Object
-    //==========================================================================
-    Config {
-        id: itemConfig
-        filename: "USB-Sensor_Desktop.conf"
-
-        onMessage: {
-            rootApp.appendMessageToLog (aMessage);
-        }
-        onErrorMessage: {
-            rootApp.showSystemMessage (qsTr ("ERROR"), aMessage);
-        }
-    }
-
-    UsbSensor {
-        id: itemUsbSensor
-        property string lastErrorMessage: " "
-
-        onMessage: {
-            rootApp.appendMessageToLog (aMessage);
-        }
-
-        onErrorMessage: {
-            console.log ("UsbSensor ERROR: " + aMessage);
-            lastErrorMessage = aMessage;
-        }
-    }
-
-    Statistic {
-        id: itemStatistic
-
-        onMessage: {
-            rootApp.appendMessageToLog (aMessage);
-        }
-        onErrorMessage: {
-            rootApp.showSystemMessage (qsTr ("ERROR"), aMessage);
-        }
-    }
 
 
 }

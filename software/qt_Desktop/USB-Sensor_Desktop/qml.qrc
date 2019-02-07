@@ -11,6 +11,7 @@
         <file>assets/settings-gears.svg</file>
         <file>assets/app_icon.png</file>
         <file>qml/Normal/TitleBar.qml</file>
+        <file>qml/Normal/RollingChart.qml</file>
     </qresource>
     <qresource prefix="/asset"/>
 </RCC>
