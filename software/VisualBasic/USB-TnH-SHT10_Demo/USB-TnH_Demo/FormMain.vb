@@ -224,7 +224,7 @@ Public Class FormMain
                 End If
                 Me.gWithHumi = False
             End If
-            If (str_info = "USB-TnH SHT10") Then
+            If (str_info = "USB-TnH SHT10") Or (str_info = "USB-TnH SHT30") Then
                 REM Get version
                 Me.SerialPort.ReadExisting()
                 Me.SerialPort.Write("GV" + vbCr)
