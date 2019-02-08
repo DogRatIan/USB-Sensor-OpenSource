@@ -21,7 +21,6 @@ Page {
     property bool hasTemperature: true
     property bool hasHumidity: true
     property bool hasPressure: true
-    property bool sendToClipboard: false
 
     property var arrayTemperature: []
 
@@ -46,16 +45,19 @@ Page {
 
         leftLogoVisible: true
         leftLogoIconSource: "qrc:/assets/app_icon.png"
-        onLeftButtonClicked: drawer.open();
+        onLeftButtonClicked: itemDrawer.open();
 
         rightButtonVisible: true
         rightButtonEnabled: !rootPage.portOpened
         rightButtonIconSource: "qrc:/assets/settings-gears.svg"
-        onRightButtonClicked: navStack.push (pageConfig);
+        onRightButtonClicked: {
+            navStack.push (pageConfig);
+            rootTop.showMessageLog (false);
+        }
     }
 
     Drawer {
-        id: drawer
+        id: itemDrawer
         width: rootPage.width * 0.20
         height: rootPage.height
 
@@ -84,6 +86,24 @@ Page {
             }
 
             ItemDelegate {
+                text: qsTr("Show Log")
+                width: parent.width
+                onClicked: {
+                    rootTop.showMessageLog(true);
+                    itemDrawer.close();
+                }
+            }
+
+            ItemDelegate {
+                text: qsTr("Hide Log")
+                width: parent.width
+                onClicked: {
+                    rootTop.showMessageLog(false);
+                    itemDrawer.close();
+                }
+            }
+
+            ItemDelegate {
                 text: qsTr("Exit")
                 width: parent.width
                 onClicked: {
@@ -101,6 +121,7 @@ Page {
         anchors.margins: 5
 
         Column {
+            id: boxInfo
             anchors.left: parent.left
             anchors.right: parent.right
             spacing: 10
@@ -110,7 +131,7 @@ Page {
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.margins: 10
-                height: 95
+                height: 50
 
                 Grid {
                     anchors.top: parent.top
@@ -123,28 +144,19 @@ Page {
                         width: 120
                         horizontalAlignment: Text.AlignRight
                         text: "Current Port:"
+                        font.bold: true
                     }
                     Label {
-                        text: rootApp.selectedPort.name
+                        text: rootApp.selectedPort.name + " "
                     }
                     Label {
                         width: 120
                         horizontalAlignment: Text.AlignRight
-                        text: "Device: "
+                        text: "Device:"
+                        font.bold: true
                     }
                     Label {
-                        text: rootPage.deviceName
-                    }
-                    Label {
-                        text: " "
-                    }
-
-                    CheckBox  {
-                        text: "Send reading to clipboard"
-                        checked: rootPage.sendToClipboard
-                        onCheckedChanged: {
-                            rootPage.sendToClipboard = checked;
-                        }
+                        text: rootPage.deviceName + " "
                     }
                 }
 
@@ -196,69 +208,86 @@ Page {
             }
 
             // Reading
-            Grid {
-                id: boxReading
-                anchors.horizontalCenter: parent.horizontalCenter
+            Item {
+                anchors.left: parent.left
+                anchors.right: parent.right
                 height: 40
-                columns: 2
-                spacing: 10
 
-                Row {
-                    width: 200
-                    height: 15
-                    spacing: 5
-                    visible: hasTemperature
+                Grid {
+                    id: boxReading
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    columns: 2
+                    spacing: 10
 
-                    Rectangle {
-                        height: 12
-                        width: 12
-                        border.width: 1
-                        color: "gold"
-                        anchors.verticalCenter: parent.verticalCenter
+                    Row {
+                        width: 200
+                        height: 15
+                        spacing: 5
+                        visible: hasTemperature
+
+                        Rectangle {
+                            height: 12
+                            width: 12
+                            border.width: 1
+                            color: "gold"
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                        Label {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: "Temperature: " + temperature + " °C"
+                        }
                     }
-                    Label {
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: "Temperature: " + temperature + " °C"
+
+                    Row {
+                        width: 200
+                        height: 15
+                        spacing: 5
+                        visible: hasHumidity
+
+                        Rectangle {
+                            height: 12
+                            width: 12
+                            border.width: 1
+                            color: "cyan"
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                        Label {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: "Humidity: " + humidity + " %RH"
+                        }
+                    }
+
+                    Row {
+                        width: 200
+                        height: 15
+                        spacing: 5
+                        visible: hasPressure
+
+                        Rectangle {
+                            height: 12
+                            width: 12
+                            border.width: 1
+                            color: "greenyellow"
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                        Label {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: "Pressure: " + pressure + " hPa"
+                        }
                     }
                 }
 
-                Row {
-                    width: 200
-                    height: 15
-                    spacing: 5
-                    visible: hasHumidity
-
-                    Rectangle {
-                        height: 12
-                        width: 12
-                        border.width: 1
-                        color: "cyan"
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-                    Label {
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: "Humidity: " + humidity + " %RH"
+                // Statistic button
+                ToolButton {
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.right: parent.right
+                    anchors.margins: 5
+                    icon.source: "qrc:/assets/database.svg"
+                    onClicked: {
+                        navStack.push (pageStatistic);
+                        rootTop.showMessageLog (false);
                     }
                 }
-                Row {
-                    width: 200
-                    height: 15
-                    spacing: 5
-                    visible: hasPressure
-
-                    Rectangle {
-                        height: 12
-                        width: 12
-                        border.width: 1
-                        color: "greenyellow"
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-                    Label {
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: "Pressure: " + pressure + " hPa"
-                    }
-                }
-
             }
 
             // Horizontal Line
@@ -269,20 +298,22 @@ Page {
                 color: Material.foreground
             }
 
-            // Chart
-            RollingChart {
-                id: chart
-                anchors.left: parent.left
-                anchors.right: parent.right
-                height: 240
+        }
 
-                lineTemperature.color: "gold"
-                lineTemperature.visible: hasTemperature
-                lineHumidity.color: "cyan"
-                lineHumidity.visible: hasHumidity
-                linePressure.color: "greenyellow"
-                linePressure.visible: hasPressure
-            }
+        // Chart
+        RollingChart {
+            id: chart
+            anchors.top: boxInfo.bottom
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+
+            lineTemperature.color: "gold"
+            lineTemperature.visible: hasTemperature
+            lineHumidity.color: "cyan"
+            lineHumidity.visible: hasHumidity
+            linePressure.color: "greenyellow"
+            linePressure.visible: hasPressure
         }
     }
 
@@ -330,13 +361,6 @@ Page {
                 pressure = itemUsbSensor.pressure / 100;
 
                 chart.rollData (temperature, humidity, pressure);
-
-                if (sendToClipboard) {
-                    console.log ("Send to clipboard.");
-                    var str_output = temperature.toFixed(2) + ", " + humidity.toFixed(2)
-                                        + ", " + pressure.toFixed(2) + ", " + timestamp;
-                    itemUsbSensor.sendToClipboard (str_output);
-                }
             }
             else {
                 clearReading();

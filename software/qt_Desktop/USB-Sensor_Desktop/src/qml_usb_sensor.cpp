@@ -29,7 +29,6 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QApplication>
-#include <QClipboard>
 
 #include "debug.h"
 #include "qml_usb_sensor.h"
@@ -265,15 +264,6 @@ bool CUsbSensor::update (void) {
     DEBUG_PRINTF ("T=%.2f, H=%.2f, P=%.2f", currentTemperature, currentHumidity, currentPressure);
 
     return true;
-}
-
-//==========================================================================
-// Send a text to clipboard
-//==========================================================================
-void CUsbSensor::sendToClipboard (QString aStr) {
-    auto clipboard = QApplication::clipboard();
-
-    clipboard->setText (aStr);
 }
 
 //==========================================================================

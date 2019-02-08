@@ -12,6 +12,8 @@
         <file>assets/app_icon.png</file>
         <file>qml/Normal/TitleBar.qml</file>
         <file>qml/Normal/RollingChart.qml</file>
+        <file>assets/database.svg</file>
+        <file>qml/Normal/PageStatistic.qml</file>
     </qresource>
     <qresource prefix="/asset"/>
 </RCC>

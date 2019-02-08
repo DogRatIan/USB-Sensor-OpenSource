@@ -52,7 +52,6 @@ public:
     Q_INVOKABLE bool isOpened (void);
     Q_INVOKABLE bool testPort (QString aPortName);
     Q_INVOKABLE bool update (void);
-    Q_INVOKABLE void sendToClipboard (QString aStr);
 
     // Properties for QML
     Q_PROPERTY (QString portName READ readPortName)

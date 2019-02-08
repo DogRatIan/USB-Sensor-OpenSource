@@ -17,7 +17,7 @@ SET APP_NAME=USB-Sensor_Desktop
 SET APP_EXE_NAME=%APP_NAME%.exe
 SET RELEASE_DIR=D:\Temp\_QtBuild\build-USB-Sensor_Desktop-Desktop_Qt_5_11_3_MinGW_32bit-Release
 SET INSTALLER_DIR=%RELEASE_DIR%\installer_win32
-SET DATA_DIR="%INSTALLER_DIR%\packages\app.dogratian.com\data"
+SET DATA_DIR="%INSTALLER_DIR%\packages\com.dogratian.app\data"
 SET BIN_DIR="%DATA_DIR%\bin"
 SET PROTABLE_DIR=%INSTALLER_DIR%\%APP_NAME%_Protable
 

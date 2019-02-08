@@ -7,8 +7,16 @@ Item {
     anchors.fill: parent
 
     //==========================================================================
-    // Properties
+    // Functions
     //==========================================================================
+    function showMessageLog (aShow) {
+        if (aShow) {
+            blockLog.state = "show";
+        }
+        else {
+            blockLog.state = "hide";
+        }
+    }
 
     //==========================================================================
     // Stack View
@@ -36,6 +44,13 @@ Item {
             }
         }
 
+        Component {
+            id: pageStatistic
+            PageStatistic {
+                objectName: "pageStatistic"
+            }
+        }
+
         Component.onCompleted: {
             // Setup log to current ListView
             viewMessageLog = messageLog;
@@ -56,6 +71,7 @@ Item {
             }
 
             itemStatistic.init ();
+            rootTop.showMessageLog (false);
         }
         Component.onDestruction: {
         }
@@ -66,12 +82,12 @@ Item {
     //==========================================================================
     Rectangle {
         id: blockLog
-        anchors.bottom: parent.bottom
         anchors.left: parent.left
         anchors.right: parent.right
         border.color: "grey"
         border.width: 1
-        height: parent.height * 0.2
+        y: rootTop.height - 100
+        height: 100
 
         ListView {
             id: messageLog
@@ -84,8 +100,17 @@ Item {
                 text: message
             }
         }
+
+        states: [
+            State {
+                name: "show"
+                PropertyChanges {target: blockLog; y: rootTop.height - 100}
+            },
+            State {
+                name: "hide"
+                PropertyChanges {target: blockLog; y: rootTop.height}
+            }
+        ]
+
     }
-
-
-
 }
