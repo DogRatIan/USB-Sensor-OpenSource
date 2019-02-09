@@ -5,8 +5,6 @@ import com.dogratian.qml.Config 1.0
 import com.dogratian.qml.UsbSensor 1.0
 import com.dogratian.qml.Statistic 1.0
 
-
-
 ApplicationWindow {
     id: rootApp
     width: 600
@@ -163,11 +161,19 @@ ApplicationWindow {
     Statistic {
         id: itemStatistic
 
+        property var feedFinishedCallback
+
         onMessage: {
             rootApp.appendMessageToLog (aMessage);
         }
         onErrorMessage: {
             rootApp.showSystemMessage (qsTr ("ERROR"), aMessage);
+        }
+
+        onFeedDataFinished: {
+            if (typeof (feedFinishedCallback) === "function") {
+                feedFinishedCallback ();
+            }
         }
     }
 

@@ -1,8 +1,6 @@
 import QtQuick 2.11
 import QtQuick.Controls 2.4
-import QtQuick.Layouts 1.3
 import QtQuick.Controls.Material 2.3
-import QtCharts 2.2
 
 import "../LocalLib" as LocalLib
 
@@ -133,31 +131,21 @@ Page {
                 anchors.margins: 10
                 height: 50
 
-                Grid {
+                Column {
                     anchors.top: parent.top
                     anchors.left: parent.left
                     anchors.margins: 10
-                    columns: 2
                     spacing: 5
 
-                    Label {
-                        width: 120
-                        horizontalAlignment: Text.AlignRight
-                        text: "Current Port:"
-                        font.bold: true
+                    LabeledText {
+                        labelText: "Current Port:"
+                        text: rootApp.selectedPort.name
                     }
-                    Label {
-                        text: rootApp.selectedPort.name + " "
+                    LabeledText {
+                        labelText: "Device:"
+                        text: rootPage.deviceName
                     }
-                    Label {
-                        width: 120
-                        horizontalAlignment: Text.AlignRight
-                        text: "Device:"
-                        font.bold: true
-                    }
-                    Label {
-                        text: rootPage.deviceName + " "
-                    }
+
                 }
 
                 Button {
@@ -168,6 +156,7 @@ Page {
                     enabled: !portOpened
                     onClicked: {
                         buttonOpenPort.focus = true;
+                        itemStatistic.clearFeedBuffer ();
                         if (rootApp.selectedPort) {
                             if (itemUsbSensor.open (rootApp.selectedPort.name)) {
                                 portOpened = true;
@@ -191,6 +180,7 @@ Page {
                     enabled: portOpened
                     onClicked: {
                         itemUsbSensor.close();
+                        itemStatistic.clearFeedBuffer ();
                         rootApp.appendMessageToLog (rootApp.selectedPort.name + " closed.");
                         portOpened = false;
                         deviceName = " ";
@@ -199,12 +189,7 @@ Page {
                 }
             }
 
-            // Horizontal Line
-            Rectangle {
-                anchors.left: parent.left
-                anchors.right: parent.right
-                height: 2
-                color: Material.foreground
+            HorizontalLine {
             }
 
             // Reading
@@ -302,7 +287,7 @@ Page {
 
         // Chart
         RollingChart {
-            id: chart
+            id: itemChart
             anchors.top: boxInfo.bottom
             anchors.left: parent.left
             anchors.right: parent.right
@@ -323,7 +308,7 @@ Page {
     Component.onCompleted: {
         rootApp.appendMessageToLog (objectName + " created. ");
         clearReading();
-        chart.clearData();
+        itemChart.clearData();
     }
 
     //==========================================================================
@@ -359,8 +344,6 @@ Page {
                 temperature = itemUsbSensor.temperature;
                 humidity = itemUsbSensor.humidity;
                 pressure = itemUsbSensor.pressure / 100;
-
-                chart.rollData (temperature, humidity, pressure);
             }
             else {
                 clearReading();
@@ -369,6 +352,8 @@ Page {
                 deviceName = " ";
                 rootApp.showSystemMessage ("ERROR", itemUsbSensor.lastErrorMessage);
             }
+            itemChart.rollData (temperature, humidity, pressure);
+            itemStatistic.feedData (timestamp, temperature, humidity, pressure);
         }
     }
 
