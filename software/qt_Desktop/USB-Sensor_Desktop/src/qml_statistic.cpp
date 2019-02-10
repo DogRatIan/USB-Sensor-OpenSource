@@ -27,6 +27,7 @@
 //==========================================================================
 #include <QCoreApplication>
 #include <QDir>
+#include <QDateTime>
 #include <cmath>
 
 #include "debug.h"
@@ -159,6 +160,76 @@ void CStatistic::feedData (time_t aTimestamp, double aTemperature, double aHumid
     updateAveraging (&avgPressure, aPressure);
     updateFileSize ();
     emit feedDataFinished ();
+}
+
+//==========================================================================
+// Remove old data
+//==========================================================================
+void CStatistic::removeOldData (int aHoursAgo) {
+    QString sql;
+
+    if (!databaseReady)
+        return;
+
+    try {
+        if (aHoursAgo > 0) {
+            // Calcualte target timestamp
+            auto now = QDateTime::currentMSecsSinceEpoch() / 1000;
+            now = now - (now % 3600);   // Round down to hour
+            time_t timestamp = static_cast<time_t>(now) - (aHoursAgo * 3600);
+            DEBUG_PRINTF ("removeOldData, target timesatmp=%ld", timestamp);
+
+            sql = QString ("DELETE * FROM temperature_1min WHERE timestamp <= %1;").arg(timestamp);
+            DEBUG_PRINTF ("SQL:%s", sql.toUtf8().data());
+            database.execute (sql.toUtf8().data());
+            sql = QString ("DELETE * FROM humidity_1min WHERE timestamp <= %1;").arg(timestamp);
+            DEBUG_PRINTF ("SQL:%s", sql.toUtf8().data());
+            database.execute (sql.toUtf8().data());
+            sql = QString ("DELETE * FROM pressure_1min WHERE timestamp <= %1;").arg(timestamp);
+            DEBUG_PRINTF ("SQL:%s", sql.toUtf8().data());
+            database.execute (sql.toUtf8().data());
+        }
+        else {
+            sql = QString ("DELETE * FROM temperature_1min;");
+            DEBUG_PRINTF ("SQL:%s", sql.toUtf8().data());
+            database.execute (sql.toUtf8().data());
+            sql = QString ("DELETE * FROM humidity_1min;");
+            DEBUG_PRINTF ("SQL:%s", sql.toUtf8().data());
+            database.execute (sql.toUtf8().data());
+            sql = QString ("DELETE * FROM pressure_1min;");
+            DEBUG_PRINTF ("SQL:%s", sql.toUtf8().data());
+            database.execute (sql.toUtf8().data());
+        }
+    }
+    catch (std::exception& aError) {
+        emit errorMessage (QString ("CStatistic remove error. %1").arg (aError.what()));
+    }
+
+}
+
+//==========================================================================
+// Export data
+//=========================================================================
+bool CStatistic::exportData (QString aTargetPath) {
+    QFileInfo info (aTargetPath);
+    if (!info.exists()) {
+        emit errorMessage (QString ("Export fail, '%1' not exist").arg(aTargetPath));
+        return false;
+    }
+    DEBUG_PRINTF ("Export to %s", aTargetPath.toUtf8().data());
+
+    QString output_path;
+    output_path = aTargetPath + QDir::separator() + "temperature_1min.csv";
+    if (exportCsv (output_path, "temperature_1min") < 0)
+        return false;
+    output_path = aTargetPath + QDir::separator() + "humidity_1min.csv";
+    if (exportCsv (output_path, "humidity_1min") < 0)
+        return false;
+    output_path = aTargetPath + QDir::separator() + "pressure_1min.csv";
+    if (exportCsv (output_path, "pressure_1min") < 0)
+        return false;
+
+    return true;
 }
 
 //==========================================================================
@@ -326,4 +397,61 @@ double CStatistic::saveAveraging (struct TAveraging *aAveraging, time_t aTimesta
     }
 
     return avg_value;
+}
+
+//=========================================================================
+// Export to CSV file
+//=========================================================================
+int CStatistic::exportCsv (QString aOutputPath, QString aTableName) {
+    QString sql;
+    QString str_output;
+    QFile output_file (aOutputPath);
+    QDateTime row_date;
+    int ret = -1;
+
+    do {
+        if (!output_file.open(QIODevice::WriteOnly)) {
+            emit errorMessage ("Unable open file for data export.");
+            break;
+        }
+
+        str_output = "timestamp, avg, min, max\n";
+        output_file.write(str_output.toUtf8());
+
+        try {
+            sql = QString ("SELECT timestamp,avg,min,max FROM %1 ORDER BY timestamp;").arg(aTableName);
+            DEBUG_PRINTF ("SQL:%s", sql.toUtf8().data());
+            sqlite3pp::query qry (database, sql.toUtf8().data());
+
+            for (auto row = qry.begin(); row != qry.end(); ++row) {
+                auto timestamp = (*row).get<long long>(0);
+                QString str_avg = "NaN";
+                QString str_min = "NaN";
+                QString str_max = "NaN";
+
+                if ((*row).get<char const*>(1) != nullptr)
+                    str_avg.sprintf ("%.2f", (*row).get<double>(1));
+                if ((*row).get<char const*>(2) != nullptr)
+                    str_min.sprintf ("%.2f", (*row).get<double>(2));
+                if ((*row).get<char const*>(3) != nullptr)
+                    str_max.sprintf ("%.2f", (*row).get<double>(3));
+
+                row_date.setMSecsSinceEpoch (timestamp * 1000);
+                auto str_date = row_date.toString(Qt::SystemLocaleShortDate);
+
+                str_output = QString ("%1, %2, %3, %4\n").arg(str_date).arg(str_avg).arg(str_min).arg(str_max);
+                output_file.write(str_output.toUtf8());
+            }
+
+        }
+        catch (std::exception& aError) {
+            emit errorMessage (QString ("CStatistic export data. %1").arg (aError.what()));
+        }
+
+        // ALL done
+        ret = 0;
+    } while (0);
+    output_file.close ();
+
+    return ret;
 }

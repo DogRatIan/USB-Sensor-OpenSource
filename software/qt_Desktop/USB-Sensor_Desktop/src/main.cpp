@@ -17,6 +17,8 @@ int main(int argc, char *argv[])
     qmlRegisterType <CUsbSensor>("com.dogratian.qml.UsbSensor", 1, 0, "UsbSensor");
     qmlRegisterType <CStatistic>("com.dogratian.qml.Statistic", 1, 0, "Statistic");
 
+    QApplication::setOrganizationName("DogRatIan");
+
     QQmlApplicationEngine engine;
     engine.load(QUrl(QStringLiteral("qrc:/qml/Main.qml")));
     if (engine.rootObjects().isEmpty())

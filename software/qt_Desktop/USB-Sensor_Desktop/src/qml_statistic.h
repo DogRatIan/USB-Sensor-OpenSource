@@ -57,6 +57,8 @@ public:
     Q_INVOKABLE bool init (void);
     Q_INVOKABLE void clearFeedBuffer (void);
     Q_INVOKABLE void feedData (long aTimestamp, double aTemperature, double aHumidity, double aPressure);
+    Q_INVOKABLE void removeOldData (int aHoursAgo);
+    Q_INVOKABLE bool exportData (QString aTargetPath);
 
     // Properties for QML
     Q_PROPERTY (QString filename READ readFilename)
@@ -121,6 +123,7 @@ private:
     void clearAllAveraging (void);
     void updateAveraging (struct TAveraging *aAveraging, double aNewValue);
     double saveAveraging (struct TAveraging *aAveraging, time_t aTimestamp, QString aTableName);
+    int exportCsv (QString aOutputPath, QString aTableName);
 };
 
 //==========================================================================

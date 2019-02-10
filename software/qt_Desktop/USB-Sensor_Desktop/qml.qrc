@@ -16,6 +16,7 @@
         <file>qml/Normal/PageStatistic.qml</file>
         <file>qml/Normal/HorizontalLine.qml</file>
         <file>qml/Normal/LabeledText.qml</file>
+        <file>qml/Normal/DialogSelectExport.qml</file>
     </qresource>
     <qresource prefix="/asset"/>
 </RCC>

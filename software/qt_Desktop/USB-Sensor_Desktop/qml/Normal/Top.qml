@@ -51,30 +51,6 @@ Item {
             }
         }
 
-        Component.onCompleted: {
-            // Setup log to current ListView
-            viewMessageLog = messageLog;
-            messageLog.positionViewAtEnd ();
-
-            if (!itemConfig.exists()) {
-                itemConfig.setStringData ("portName", "");
-                itemConfig.setStringData ("portDesc", "");
-                itemConfig.save();
-                appendMessageToLog ("Config file created.");
-            }
-
-            if (itemConfig.load()) {
-                var port_name = itemConfig.getStringData("portName");
-                var port_desc = itemConfig.getStringData("portDesc");
-                console.log ("Last port is " + port_name);
-                selectedPort = {"name": port_name, "desc": port_desc};
-            }
-
-            itemStatistic.init ();
-            rootTop.showMessageLog (false);
-        }
-        Component.onDestruction: {
-        }
     }
 
     //==========================================================================
@@ -112,5 +88,34 @@ Item {
             }
         ]
 
+    }
+
+    //==========================================================================
+    // Creation/Destruction
+    //==========================================================================
+    Component.onCompleted: {
+        // Setup log to current ListView
+        viewMessageLog = messageLog;
+        messageLog.positionViewAtEnd ();
+
+        if (!itemConfig.exists()) {
+            itemConfig.setStringData ("portName", "");
+            itemConfig.setStringData ("portDesc", "");
+            itemConfig.setStringData ("lastExportPath", "");
+            itemConfig.save();
+            appendMessageToLog ("Config file created.");
+        }
+
+        if (itemConfig.load()) {
+            var port_name = itemConfig.getStringData("portName");
+            var port_desc = itemConfig.getStringData("portDesc");
+            console.log ("Last port is " + port_name);
+            rootApp.selectedPort = {"name": port_name, "desc": port_desc};
+        }
+
+        itemStatistic.init ();
+        rootTop.showMessageLog (false);
+    }
+    Component.onDestruction: {
     }
 }

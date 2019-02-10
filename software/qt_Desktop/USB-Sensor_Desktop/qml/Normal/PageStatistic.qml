@@ -1,9 +1,12 @@
 import QtQuick 2.11
 import QtQuick.Controls 2.4
+import QtQuick.Dialogs 1.2
 
 Page {
     id: rootPage
     title: qsTr("Statistic")
+
+    property var targetExportPath
 
     //==========================================================================
     // Functions
@@ -55,6 +58,11 @@ Page {
     function onFeedDataFinished() {
         console.log ("onFeedDataFinished");
         updateStatus ();
+    }
+
+    function onExportSelected (aDest) {
+        console.log ("onExportSelected: " + aDest);
+        targetExportPath = aDest;
     }
 
     //==========================================================================
@@ -112,9 +120,112 @@ Page {
                 id: textLastSavedTimestamp
                 labelText: " "
             }
+
+            HorizontalLine {
+            }
+
+            Item {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                height: boxRemoveOldData.height
+
+                Row {
+                    id: boxRemoveOldData
+                    spacing: 10
+
+                    Label {
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: 150
+                        text: "Remove old data:"
+                        font.bold: true
+                        horizontalAlignment: Text.AlignRight
+                    }
+                    ComboBox {
+                        id: comboBoxRemoveDataLen
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: 200
+                        editable: false
+                        textRole: "text"
+                        model: ListModel {
+                            id: comboBoxRemoveDataModel
+                            ListElement { length: -1; text: "All" }
+                            ListElement { length: 24; text: "1 days ago" }
+                            ListElement { length: 168; text: "7 days ago" }
+                        }
+                    }
+                }
+                Button {
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "Proceed"
+                    onClicked: {
+                        var selected = comboBoxRemoveDataModel.get (comboBoxRemoveDataLen.currentIndex);
+                        console.log ("selected=" + selected.length);
+                        itemStatistic.removeOldData (selected.length);
+                    }
+                }
+            }
+
+            HorizontalLine {
+            }
+
+            LabeledText {
+                labelText: "Export data:"
+                text: targetExportPath
+            }
+
+            Row {
+                anchors.right: parent.right
+                spacing: 10
+                Button {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "Browse"
+                    onClicked: {
+                        dialogLoader.open ();
+                    }
+                }
+                Button {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "Export"
+                    onClicked: {
+                        if (itemConfig.getStringData ("lastExportPath") !== targetExportPath) {
+                            itemConfig.setStringData ("lastExportPath", targetExportPath);
+                            itemConfig.save ();
+                        }
+                        if (!itemStatistic.exportData (targetExportPath)) {
+                        }
+                    }
+                }
+            }
+
+            HorizontalLine {
+            }
+
+        }
+    }
+    Loader {
+        id: dialogLoader
+        anchors.fill: parent
+        focus: true
+
+        function open () {
+            if (dialogLoader.status == Loader.Ready) {
+                dialogLoader.item.open ();
+            }
+            else {
+                dialogLoader.source = "DialogSelectExport.qml"
+            }
+            if (targetExportPath.length > 0) {
+                dialogLoader.item.folder = "file:///" + targetExportPath;
+            }
         }
 
+        onLoaded: {
+            dialogLoader.item.callbackFunc = rootPage.onExportSelected;
+            dialogLoader.item.open ();
+        }
     }
+
 
     //==========================================================================
     // Creation/Destruction
@@ -123,6 +234,7 @@ Page {
         appendMessageToLog (objectName + " created.");
         updateStatus ();
         itemStatistic.feedFinishedCallback = rootPage.onFeedDataFinished;
+        targetExportPath = itemConfig.getStringData ("lastExportPath");
     }
     Component.onDestruction: {
         itemStatistic.feedFinishedCallback = undefined;
