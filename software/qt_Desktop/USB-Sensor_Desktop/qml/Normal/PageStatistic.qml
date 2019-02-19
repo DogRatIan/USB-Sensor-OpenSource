@@ -161,7 +161,9 @@ Page {
                     onClicked: {
                         var selected = comboBoxRemoveDataModel.get (comboBoxRemoveDataLen.currentIndex);
                         console.log ("selected=" + selected.length);
-                        itemStatistic.removeOldData (selected.length);
+                        if (itemStatistic.removeOldData (selected.length)) {
+                            rootApp.showSystemMessage ("INFO", "Statistic data removed.");
+                        }
                     }
                 }
             }
@@ -188,11 +190,17 @@ Page {
                     anchors.verticalCenter: parent.verticalCenter
                     text: "Export"
                     onClicked: {
+                        if (targetExportPath.length === 0) {
+                            rootApp.showSystemMessage ("ERROR", "Please select path for export.");
+                            return;
+                        }
+
                         if (itemConfig.getStringData ("lastExportPath") !== targetExportPath) {
                             itemConfig.setStringData ("lastExportPath", targetExportPath);
                             itemConfig.save ();
                         }
-                        if (!itemStatistic.exportData (targetExportPath)) {
+                        if (itemStatistic.exportData (targetExportPath)) {
+                            rootApp.showSystemMessage ("INFO", "Export done.");
                         }
                     }
                 }

@@ -99,6 +99,8 @@ private:
     int sendCommand (const char *aCmd);
     int waitResponse (char *aResp, int aRespSize, int aTimeout = -1);
     void clearReading (void);
+    int getJsonReading (void);
+    int getReading (void);
 };
 
 //==========================================================================

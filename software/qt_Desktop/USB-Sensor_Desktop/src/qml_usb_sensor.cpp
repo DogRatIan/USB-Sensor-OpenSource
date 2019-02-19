@@ -45,6 +45,44 @@
 
 //==========================================================================
 //==========================================================================
+static void FixOldFloatString (char *aStr, int aLen) {
+    int i;
+    int int_part = 0;
+    int dec_part = 0;
+
+    // Find negative sign
+    for (i = 0; aStr[i]; i ++ ) {
+        if (aStr[i] == '-')
+            break;
+    }
+    if (aStr[i] == 0)
+        return;
+
+    // Find the .
+    for (i = 0; aStr[i]; i ++ ) {
+        if (aStr[i] == '.')
+            break;
+    }
+    int_part = atoi (aStr);
+    if (i == aLen) {
+    }
+    else {
+        dec_part = atoi (&aStr[i + 1]);
+    }
+
+    if (int_part < 0)
+        int_part *= -1;
+    if (dec_part < 0)
+        dec_part *= -1;
+    dec_part ++;
+    DEBUG_PRINTF ("int_part=%d\n", int_part);
+    DEBUG_PRINTF ("dec_part=%d\n", dec_part);
+
+    snprintf (aStr, static_cast<size_t>(aLen), "-%d.%02d", int_part, dec_part);
+}
+
+//==========================================================================
+//==========================================================================
 // Public members
 // vvvvvvvvvvvvvv
 //==========================================================================
@@ -215,6 +253,13 @@ bool CUsbSensor::testPort (QString aPortName) {
         currentDeviceVersion.replace("\n", "");
         currentDeviceVersion.replace("\a", "");
 
+        if (currentDeviceId.startsWith("USB-PA")) {
+            if (currentDeviceVersion.compare("V2,00") == 9) {
+                // Using old get reading method that with float number string fixing
+                usingGetJson = false;
+            }
+        }
+
         port_ok = true;
         emit message ("Port test success.");
 
@@ -229,41 +274,25 @@ bool CUsbSensor::testPort (QString aPortName) {
 // Update reading
 //==========================================================================
 bool CUsbSensor::update (void) {
-    char resp[64];
-
-    clearReading();
-
     if (!serialPort.isOpen()) {
         emit errorMessage ("Port not opened.");
         return false;
     }
-    if (sendCommand("GJSON") < 0) {
-        return false;
-    }
-    auto resp_len = waitResponse (resp, sizeof (resp));
-    if (resp_len < 0)
-        return false;
-    auto str_resp = QString (resp);
 
-    QJsonDocument j_doc = QJsonDocument::fromJson(str_resp.toUtf8());
-    if (j_doc.isNull()) {
-        emit errorMessage ("Invalid JSON response.");
-        return false;
-    }
+    clearReading();
 
-    QJsonObject j_obj = j_doc.object();
-    if (j_obj.contains ("T")) {
-        currentTemperature = j_obj["T"].toDouble ();
+    if (usingGetJson) {
+        if (getJsonReading() < 0)
+            return false;
+        else
+            return true;
     }
-    if (j_obj.contains ("H")) {
-        currentHumidity = j_obj["H"].toDouble ();
+    else {
+        if (getReading() < 0)
+            return false;
+        else
+            return true;
     }
-    if (j_obj.contains ("P")) {
-        currentPressure = j_obj["P"].toDouble ();
-    }
-    DEBUG_PRINTF ("T=%.2f, H=%.2f, P=%.2f", currentTemperature, currentHumidity, currentPressure);
-
-    return true;
 }
 
 //==========================================================================
@@ -402,4 +431,84 @@ void CUsbSensor::clearReading (void) {
     currentTemperature = std::nan("");
     currentHumidity = std::nan("");
     currentPressure = std::nan("");
+}
+
+//==========================================================================
+// Get reading via JSON
+//==========================================================================
+int CUsbSensor::getJsonReading (void) {
+    char resp[64];
+
+    if (sendCommand("GJSON") < 0) {
+        return -1;
+    }
+    auto resp_len = waitResponse (resp, sizeof (resp));
+    if (resp_len < 0)
+        return -1;
+    auto str_resp = QString (resp);
+
+    QJsonDocument j_doc = QJsonDocument::fromJson(str_resp.toUtf8());
+    if (j_doc.isNull()) {
+        emit errorMessage ("Invalid JSON response.");
+        return -1;
+    }
+
+    QJsonObject j_obj = j_doc.object();
+    if (j_obj.contains ("T")) {
+        currentTemperature = j_obj["T"].toDouble ();
+    }
+    if (j_obj.contains ("H")) {
+        currentHumidity = j_obj["H"].toDouble ();
+    }
+    if (j_obj.contains ("P")) {
+        currentPressure = j_obj["P"].toDouble ();
+    }
+    DEBUG_PRINTF ("T=%.2f, H=%.2f, P=%.2f", currentTemperature, currentHumidity, currentPressure);
+
+    return 0;
+}
+
+//==========================================================================
+// Get reading via traditional commands
+//==========================================================================
+int CUsbSensor::getReading (void) {
+    char resp[64];
+
+    // Get Temperature
+    if (currentHasTemperature) {
+        if (sendCommand("GT") < 0) {
+            return -1;
+        }
+        auto resp_len = waitResponse (resp, sizeof (resp));
+        if (resp_len < 0)
+            return -1;
+        FixOldFloatString (resp, sizeof (resp));
+        currentTemperature = atof (resp);
+    }
+
+    // Get Humidity
+    if (currentHasHumidity) {
+        if (sendCommand("GH") < 0) {
+            return -1;
+        }
+        auto resp_len = waitResponse (resp, sizeof (resp));
+        if (resp_len < 0)
+            return -1;
+        FixOldFloatString (resp, sizeof (resp));
+        currentHumidity = atof (resp);
+    }
+
+    // Get Pressure
+    if (currentHasPressure) {
+        if (sendCommand("GP") < 0) {
+            return -1;
+        }
+        auto resp_len = waitResponse (resp, sizeof (resp));
+        if (resp_len < 0)
+            return -1;
+        FixOldFloatString (resp, sizeof (resp));
+        currentPressure = atof (resp);
+    }
+
+    return 0;
 }

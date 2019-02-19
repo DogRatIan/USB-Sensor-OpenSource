@@ -165,11 +165,12 @@ void CStatistic::feedData (time_t aTimestamp, double aTemperature, double aHumid
 //==========================================================================
 // Remove old data
 //==========================================================================
-void CStatistic::removeOldData (int aHoursAgo) {
+bool CStatistic::removeOldData (int aHoursAgo) {
     QString sql;
+    bool ret = false;
 
     if (!databaseReady)
-        return;
+        return ret;
 
     try {
         if (aHoursAgo > 0) {
@@ -179,32 +180,36 @@ void CStatistic::removeOldData (int aHoursAgo) {
             time_t timestamp = static_cast<time_t>(now) - (aHoursAgo * 3600);
             DEBUG_PRINTF ("removeOldData, target timesatmp=%ld", timestamp);
 
-            sql = QString ("DELETE * FROM temperature_1min WHERE timestamp <= %1;").arg(timestamp);
+            sql = QString ("DELETE FROM temperature_1min WHERE timestamp <= %1;").arg(timestamp);
             DEBUG_PRINTF ("SQL:%s", sql.toUtf8().data());
             database.execute (sql.toUtf8().data());
-            sql = QString ("DELETE * FROM humidity_1min WHERE timestamp <= %1;").arg(timestamp);
+            sql = QString ("DELETE FROM humidity_1min WHERE timestamp <= %1;").arg(timestamp);
             DEBUG_PRINTF ("SQL:%s", sql.toUtf8().data());
             database.execute (sql.toUtf8().data());
-            sql = QString ("DELETE * FROM pressure_1min WHERE timestamp <= %1;").arg(timestamp);
+            sql = QString ("DELETE FROM pressure_1min WHERE timestamp <= %1;").arg(timestamp);
             DEBUG_PRINTF ("SQL:%s", sql.toUtf8().data());
             database.execute (sql.toUtf8().data());
         }
         else {
-            sql = QString ("DELETE * FROM temperature_1min;");
+            sql = QString ("DELETE FROM temperature_1min;");
             DEBUG_PRINTF ("SQL:%s", sql.toUtf8().data());
             database.execute (sql.toUtf8().data());
-            sql = QString ("DELETE * FROM humidity_1min;");
+            sql = QString ("DELETE FROM humidity_1min;");
             DEBUG_PRINTF ("SQL:%s", sql.toUtf8().data());
             database.execute (sql.toUtf8().data());
-            sql = QString ("DELETE * FROM pressure_1min;");
+            sql = QString ("DELETE FROM pressure_1min;");
             DEBUG_PRINTF ("SQL:%s", sql.toUtf8().data());
             database.execute (sql.toUtf8().data());
         }
+
+        // ALL done
+        ret = true;
     }
     catch (std::exception& aError) {
         emit errorMessage (QString ("CStatistic remove error. %1").arg (aError.what()));
     }
 
+    return ret;
 }
 
 //==========================================================================

@@ -57,7 +57,7 @@ public:
     Q_INVOKABLE bool init (void);
     Q_INVOKABLE void clearFeedBuffer (void);
     Q_INVOKABLE void feedData (long aTimestamp, double aTemperature, double aHumidity, double aPressure);
-    Q_INVOKABLE void removeOldData (int aHoursAgo);
+    Q_INVOKABLE bool removeOldData (int aHoursAgo);
     Q_INVOKABLE bool exportData (QString aTargetPath);
 
     // Properties for QML
