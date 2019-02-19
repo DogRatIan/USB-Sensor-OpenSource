@@ -358,6 +358,7 @@ int CUsbSensor::openSerialPort (QString aPortName)
         return -1;
     }
 
+    serialPort.setDataTerminalReady (true);
     serialPort.flush ();
 
     return 0;
