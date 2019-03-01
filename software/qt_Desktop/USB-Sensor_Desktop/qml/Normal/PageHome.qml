@@ -219,7 +219,7 @@ Page {
                         }
                         Label {
                             anchors.verticalCenter: parent.verticalCenter
-                            text: "Temperature: " + temperature + " °C"
+                            text: "Temperature: " + temperature.toFixed(2) + " °C"
                         }
                     }
 
@@ -238,7 +238,7 @@ Page {
                         }
                         Label {
                             anchors.verticalCenter: parent.verticalCenter
-                            text: "Humidity: " + humidity + " %RH"
+                            text: "Humidity: " + humidity.toFixed(2) + " %RH"
                         }
                     }
 
@@ -257,7 +257,7 @@ Page {
                         }
                         Label {
                             anchors.verticalCenter: parent.verticalCenter
-                            text: "Pressure: " + pressure + " hPa"
+                            text: "Pressure: " + pressure.toFixed(4) + " hPa"
                         }
                     }
                 }

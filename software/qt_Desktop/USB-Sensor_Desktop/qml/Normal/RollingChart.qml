@@ -51,11 +51,18 @@ ChartView {
             point2.x = point1.x;
             lineHumidity.replace (point1.x, point1.y, point2.x, point2.y);
 
+            point1 = linePressure.at (i);
+            point2 = linePressure.at (i + 1);
+            point2.x = point1.x;
+            linePressure.replace (point1.x, point1.y, point2.x, point2.y);
         }
+
         point1 = lineTemperature.at (lineTemperature.count - 1);
-        lineTemperature.replace (point1.x, point1.y, 0, temperature);
+        lineTemperature.replace (point1.x, point1.y, 0, aTemperature);
         point1 = lineHumidity.at (lineTemperature.count - 1);
-        lineHumidity.replace (point1.x, point1.y, 0, humidity);
+        lineHumidity.replace (point1.x, point1.y, 0, aHumidity);
+        point1 = linePressure.at (lineTemperature.count - 1);
+        linePressure.replace (point1.x, point1.y, 0, aPressure);
     }
 
     //==========================================================================
