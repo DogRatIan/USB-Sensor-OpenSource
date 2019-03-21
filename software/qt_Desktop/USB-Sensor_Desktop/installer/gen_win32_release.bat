@@ -15,10 +15,10 @@ SET CURR_DIR=%CD%
 REM Set project variables
 SET APP_NAME=USB-Sensor_Desktop
 SET APP_EXE_NAME=%APP_NAME%.exe
-SET RELEASE_DIR=D:\Temp\_QtBuild\build-USB-Sensor_Desktop-Desktop_Qt_5_11_3_MinGW_32bit-Release
+SET RELEASE_DIR=D:\Temp\_QtBuild\build-%APP_NAME%-Desktop_Qt_5_11_3_MinGW_32bit-Release
 SET INSTALLER_DIR=%RELEASE_DIR%\installer_win32
-SET DATA_DIR="%INSTALLER_DIR%\packages\com.dogratian.app\data"
-SET BIN_DIR="%DATA_DIR%\bin"
+SET DATA_DIR=%INSTALLER_DIR%\packages\com.dogratian.app\data
+SET BIN_DIR=%DATA_DIR%\bin
 SET PROTABLE_DIR=%INSTALLER_DIR%\%APP_NAME%_Protable
 
 REM Set tools location
@@ -52,23 +52,23 @@ mkdir "%INSTALLER_DIR%"
 REM Prepare installer directory
 xcopy config "%INSTALLER_DIR%\config" /e /h /i /q
 xcopy packages "%INSTALLER_DIR%\packages" /e /h /i /q
-if EXIST "%INSTALLER_DIR%" (
-    rmdir /s /q "%BIN_DIR%
+if EXIST "%BIN_DIR%" (
+    rmdir /s /q "%BIN_DIR%"
 )
 mkdir "%BIN_DIR%"
 
 REM Copy exe to bin directory
-copy "%RELEASE_DIR%\release\*.exe" "%BIN_DIR%"
-copy "%APP_DIR%\asset\app_icon.ico" "%DATA_DIR%"
+xcopy "%RELEASE_DIR%\release\*.exe" "%BIN_DIR%" /y /e /q
+xcopy "%APP_DIR%\assets\app_icon.ico" "%DATA_DIR%" /y /e /q
 
 REM Use deploy tools to prepare all library
 cd /d "%BIN_DIR%"
 "%QT_DIR%\bin\windeployqt.exe" %APP_EXE_NAME% --release --qmldir "%APP_DIR%/qml"
 
 REM Add extra lib
-copy "%QT_DIR%\bin\libwinpthread-1.dll" .
-copy "%QT_DIR%\bin\libstdc++-6.dll" .
-copy "%QT_DIR%\bin\libgcc_s_dw2-1.dll" .
+xcopy "%QT_DIR%\bin\libwinpthread-1.dll" . /y /e /q
+xcopy "%QT_DIR%\bin\libstdc++-6.dll" . /y /e /q
+xcopy "%QT_DIR%\bin\libgcc_s_dw2-1.dll" . /y /e /q
 
 if "%~1"=="-s" goto END
 REM Gen installer package

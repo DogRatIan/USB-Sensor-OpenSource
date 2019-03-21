@@ -155,6 +155,7 @@ Page {
                     text: qsTr("Start")
                     enabled: !portOpened
                     onClicked: {
+                        itemChart.clearData();
                         buttonOpenPort.focus = true;
                         itemStatistic.clearFeedBuffer ();
                         if (rootApp.selectedPort) {
