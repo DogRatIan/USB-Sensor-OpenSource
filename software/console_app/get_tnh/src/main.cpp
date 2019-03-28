@@ -239,7 +239,7 @@ static int GetTemperature (void)
 
     f = atof ((char *)rx_buf);
 
-    printf ("%.1f\n", f);
+    printf ("%.2f\n", f);
 
     return 0;
 }
@@ -303,7 +303,7 @@ static int GetHumidity (void)
 
     f = atof ((char *)rx_buf);
 
-    printf ("%.1f\n", f);
+    printf ("%.2f\n", f);
 
     return 0;
 }
