@@ -1,5 +1,6 @@
 #include <QApplication>
 #include <QQmlApplicationEngine>
+#include <QIcon>
 
 #include "qml_port_list.h"
 #include "qml_config.h"
@@ -18,6 +19,8 @@ int main(int argc, char *argv[])
     qmlRegisterType <CStatistic>("com.dogratian.qml.Statistic", 1, 0, "Statistic");
 
     QApplication::setOrganizationName("DogRatIan");
+    app.setWindowIcon (QIcon("qrc:/assets/app_icon.png"));
+
 
     QQmlApplicationEngine engine;
     engine.load(QUrl(QStringLiteral("qrc:/qml/Main.qml")));

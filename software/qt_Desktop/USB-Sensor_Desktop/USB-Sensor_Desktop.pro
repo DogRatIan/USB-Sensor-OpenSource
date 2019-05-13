@@ -72,4 +72,8 @@ defineTest(copyToDestDir) {
     export(QMAKE_POST_LINK)
 }
 
+create.commands = $(MKDIR) $$OUT_PWD/resources
+QMAKE_EXTRA_TARGETS += create
+POST_TARGETDEPS += create
+
 copyToDestDir($$OTHER_FILES, $$OUT_PWD/resources/)
