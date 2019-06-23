@@ -32,6 +32,7 @@
 //==========================================================================
 #include <QObject>
 #include <QSerialPort>
+#include <QJsonObject>
 
 //==========================================================================
 // Defines
@@ -57,23 +58,28 @@ public:
     Q_PROPERTY (QString portName READ readPortName)
     Q_PROPERTY (QString deviceId READ readDeviceId)
     Q_PROPERTY (QString deviceVersion READ readDeviceVersion)
-    Q_PROPERTY (double temperature READ readTemperature)
-    Q_PROPERTY (double humidity READ readHumidity)
-    Q_PROPERTY (double pressure READ readPressure)
-    Q_PROPERTY (bool hasTemperature READ readHasTemperature)
-    Q_PROPERTY (bool hasHumudity READ readHasHumidity)
-    Q_PROPERTY (bool hasPressure READ readHasPressure)
+    Q_PROPERTY (QString deviceType READ readDeviceType)
+//    Q_PROPERTY (double temperature READ readTemperature)
+//    Q_PROPERTY (double humidity READ readHumidity)
+//    Q_PROPERTY (double pressure READ readPressure)
+//    Q_PROPERTY (bool hasTemperature READ readHasTemperature)
+//    Q_PROPERTY (bool hasHumudity READ readHasHumidity)
+//    Q_PROPERTY (bool hasPressure READ readHasPressure)
+    Q_PROPERTY (QString result READ readResult)
 
     //
     QString readPortName (void);
     QString readDeviceId (void);
     QString readDeviceVersion (void);
-    double readTemperature (void);
-    double readHumidity (void);
-    double readPressure (void);
-    bool readHasTemperature (void);
-    bool readHasHumidity (void);
-    bool readHasPressure (void);
+    QString readDeviceType (void);
+//    double readTemperature (void);
+//    double readHumidity (void);
+//    double readPressure (void);
+//    bool readHasTemperature (void);
+//    bool readHasHumidity (void);
+//    bool readHasPressure (void);
+    QString readResult (void);
+
 
     //
 
@@ -86,13 +92,15 @@ private:
     QSerialPort serialPort;
     QString currentDeviceId;
     QString currentDeviceVersion;
-    double currentTemperature;
-    double currentHumidity;
-    double currentPressure;
-    bool usingGetJson;
-    bool currentHasTemperature;
-    bool currentHasHumidity;
-    bool currentHasPressure;
+    QString currentDeviceType;
+//    double currentTemperature;
+//    double currentHumidity;
+//    double currentPressure;
+//    bool currentHasTemperature;
+//    bool currentHasHumidity;
+//    bool currentHasPressure;
+    bool usingOldTnHGet;
+    QJsonObject currentJsonResult;
 
 
     int openSerialPort (QString aPortName);
@@ -100,7 +108,7 @@ private:
     int waitResponse (char *aResp, int aRespSize, int aTimeout = -1);
     void clearReading (void);
     int getJsonReading (void);
-    int getReading (void);
+    int getOldTnHReading (void);
 };
 
 //==========================================================================

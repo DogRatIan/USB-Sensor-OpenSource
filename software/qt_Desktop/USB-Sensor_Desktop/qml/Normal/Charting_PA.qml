@@ -26,17 +26,26 @@ ChartView {
         }
     }
 
-    function rollData (aTemperature, aHumidity, aPressure) {
-        // NAN as zero
-        if (aTemperature === Number.NaN) {
-            aTemperature = 0;
+    function rollData (aResult) {
+        // Default is 0 (for NAN)
+        var temperature = 0;
+        var humidity = 0;
+        var pressure = 0;
+
+        if (aResult !== undefined) {
+            if (aResult.T !== undefined) {
+                temperature = aResult.T;
+            }
+            if (aResult.H !== undefined) {
+                humidity = aResult.H;
+            }
+            if (aResult.P !== undefined) {
+                pressure = aResult.P;
+                linePressure.visible = true;
+            }
         }
-        if (aHumidity === Number.NaN) {
-            aHumidity = 0;
-        }
-        if (aPressure === Number.NaN) {
-            aPressure = 0;
-        }
+        console.log ("Charting_PA rollData " + temperature + ", " + humidity + ", " + pressure);
+
 
         var point1;
         var point2;
@@ -58,11 +67,11 @@ ChartView {
         }
 
         point1 = lineTemperature.at (lineTemperature.count - 1);
-        lineTemperature.replace (point1.x, point1.y, 0, aTemperature);
-        point1 = lineHumidity.at (lineTemperature.count - 1);
-        lineHumidity.replace (point1.x, point1.y, 0, aHumidity);
-        point1 = linePressure.at (lineTemperature.count - 1);
-        linePressure.replace (point1.x, point1.y, 0, aPressure);
+        lineTemperature.replace (point1.x, point1.y, 0, temperature);
+        point1 = lineHumidity.at (lineHumidity.count - 1);
+        lineHumidity.replace (point1.x, point1.y, 0, humidity);
+        point1 = linePressure.at (linePressure.count - 1);
+        linePressure.replace (point1.x, point1.y, 0, pressure);
     }
 
     //==========================================================================
@@ -95,17 +104,21 @@ ChartView {
         axisX: axisX
         axisY: axisY
         width: 2
+        color: "gold"
     }
     LineSeries {
         id: lineHumidity
         axisX: axisX
         axisY: axisY
         width: 2
+        color: "cyan"
     }
     LineSeries {
         id: linePressure
         axisX: axisX
         axisYRight: axisYPressure
         width: 2
+        color: "greenyellow"
+        visible: false
     }
 }

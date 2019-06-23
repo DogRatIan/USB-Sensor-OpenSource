@@ -125,6 +125,7 @@ ApplicationWindow {
             anchors.fill: parent
             anchors.margins: 5
             text: "-"
+            textFormat: Text.AutoText
             wrapMode: Text.WordWrap
         }
     }

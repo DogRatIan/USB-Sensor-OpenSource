@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
     qmlRegisterType <CStatistic>("com.dogratian.qml.Statistic", 1, 0, "Statistic");
 
     QApplication::setOrganizationName("DogRatIan");
-    app.setWindowIcon (QIcon("qrc:/assets/app_icon.png"));
+    app.setWindowIcon (QIcon("qrc:/assets/app_icon.ico"));
 
 
     QQmlApplicationEngine engine;

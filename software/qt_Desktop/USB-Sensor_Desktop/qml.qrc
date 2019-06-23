@@ -11,12 +11,14 @@
         <file>assets/settings-gears.svg</file>
         <file>assets/app_icon.png</file>
         <file>qml/Normal/TitleBar.qml</file>
-        <file>qml/Normal/RollingChart.qml</file>
         <file>assets/database.svg</file>
         <file>qml/Normal/PageStatistic.qml</file>
         <file>qml/Normal/HorizontalLine.qml</file>
         <file>qml/Normal/LabeledText.qml</file>
         <file>qml/Normal/DialogSelectExport.qml</file>
+        <file>assets/app_icon.ico</file>
+        <file>qml/Normal/Reading_PA.qml</file>
+        <file>qml/Normal/Charting_PA.qml</file>
     </qresource>
     <qresource prefix="/asset"/>
 </RCC>

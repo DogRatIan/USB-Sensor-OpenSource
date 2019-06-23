@@ -129,9 +129,9 @@ void CStatistic::clearFeedBuffer (void) {
 }
 
 //==========================================================================
-// Feed data for statistic
+// Feed data for statistic for USB-PA and USB-TnH
 //==========================================================================
-void CStatistic::feedData (time_t aTimestamp, double aTemperature, double aHumidity, double aPressure) {
+void CStatistic::feedData_PA (time_t aTimestamp, double aTemperature, double aHumidity, double aPressure) {
     if (!databaseReady)
         return;
 

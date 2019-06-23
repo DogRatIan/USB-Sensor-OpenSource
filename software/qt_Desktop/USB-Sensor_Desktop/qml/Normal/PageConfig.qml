@@ -23,11 +23,11 @@ Page {
         if (targetPort) {
             console.log ("Test " + targetPort.name);
             if (itemUsbSensor.testPort (targetPort.name)) {
-                rootApp.showSystemMessage (qsTr ("INFO"), "Test success.\n"
+                rootApp.showSystemMessage (qsTr ("INFO"), "Test success.<br>"
                                            + itemUsbSensor.deviceId + " " + itemUsbSensor.deviceVersion + " found.");
             }
             else {
-                rootApp.showSystemMessage (qsTr ("ERROR"), "Test fail.\n" + itemUsbSensor.lastErrorMessage);
+                rootApp.showSystemMessage (qsTr ("ERROR"), "Test fail.<br>" + itemUsbSensor.lastErrorMessage);
             }
         }
         rootApp.showBusy (false);

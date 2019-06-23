@@ -27,7 +27,6 @@
 //==========================================================================
 #include <QElapsedTimer>
 #include <QJsonDocument>
-#include <QJsonObject>
 #include <QApplication>
 
 #include "debug.h"
@@ -155,28 +154,37 @@ QString CUsbSensor::readDeviceVersion (void) {
     return currentDeviceVersion;
 }
 
-double CUsbSensor::readTemperature (void) {
-    return currentTemperature;
+QString CUsbSensor::readDeviceType (void) {
+    return currentDeviceType;
 }
+//double CUsbSensor::readTemperature (void) {
+//    return currentTemperature;
+//}
 
-double CUsbSensor::readHumidity (void) {
-    return currentHumidity;
-}
+//double CUsbSensor::readHumidity (void) {
+//    return currentHumidity;
+//}
 
-double CUsbSensor::readPressure (void) {
-    return currentPressure;
-}
+//double CUsbSensor::readPressure (void) {
+//    return currentPressure;
+//}
 
-bool CUsbSensor::readHasTemperature (void) {
-    return currentHasTemperature;
-}
+//bool CUsbSensor::readHasTemperature (void) {
+//    return currentHasTemperature;
+//}
 
-bool CUsbSensor::readHasHumidity (void) {
-    return currentHasHumidity;
-}
+//bool CUsbSensor::readHasHumidity (void) {
+//    return currentHasHumidity;
+//}
 
-bool CUsbSensor::readHasPressure (void) {
-    return currentHasPressure;
+//bool CUsbSensor::readHasPressure (void) {
+//    return currentHasPressure;
+//}
+
+QString CUsbSensor::readResult (void) {
+    QJsonDocument j_doc (currentJsonResult);
+
+    return j_doc.toJson (QJsonDocument::Compact);
 }
 
 
@@ -194,9 +202,10 @@ bool CUsbSensor::testPort (QString aPortName) {
     // Clear info
     currentDeviceId.clear();
     currentDeviceVersion.clear();
-    currentHasTemperature = false;
-    currentHasHumidity = false;
-    currentHasPressure = false;
+    currentDeviceType.clear();
+//    currentHasTemperature = false;
+//    currentHasHumidity = false;
+//    currentHasPressure = false;
 
     // Uncoditional close
     close ();
@@ -212,6 +221,9 @@ bool CUsbSensor::testPort (QString aPortName) {
     //
     port_ok = false;
     do {
+        // Default using GJSON command
+        usingOldTnHGet = false;
+
         // Get ID
         if (sendCommand("GI") < 0)
             break;
@@ -223,24 +235,26 @@ bool CUsbSensor::testPort (QString aPortName) {
         str_resp.replace("\a", "");
         if (str_resp.startsWith ("USB-TnH")) {
             currentDeviceId = str_resp;
-            if (str_resp.contains ("SHT30")) {
-                usingGetJson = true;
+            currentDeviceType = "USB-TnH";
+            if (!str_resp.contains ("SHT30")) {
+                usingOldTnHGet = true;
             }
-            else {
-                usingGetJson = false;
-            }
-            currentHasTemperature = true;
-            currentHasHumidity = true;
+//            currentHasTemperature = true;
+//            currentHasHumidity = true;
         }
         else if (str_resp.startsWith ("USB-PA")) {
             currentDeviceId = str_resp;
-            usingGetJson = true;
-            currentHasTemperature = true;
-            currentHasHumidity = true;
-            currentHasPressure = true;
+            currentDeviceType = "USB-PA";
+//            currentHasTemperature = true;
+//            currentHasHumidity = true;
+//            currentHasPressure = true;
+        }
+        else if (str_resp.startsWith ("USB-VOC")) {
+            currentDeviceId = str_resp;
+            currentDeviceType = "USB-VOC";
         }
         else {
-            emit errorMessage (QString ("Unknown device '%1'").arg(str_resp));
+            emit errorMessage (QString ("Unknown device.<br>'%1'").arg(str_resp));
             break;
         }
 
@@ -253,10 +267,10 @@ bool CUsbSensor::testPort (QString aPortName) {
         currentDeviceVersion.replace("\n", "");
         currentDeviceVersion.replace("\a", "");
 
-        if (currentDeviceId.startsWith("USB-PA")) {
+        if (currentDeviceType == "USB-PA") {
             if (currentDeviceVersion.compare("V2,00") == 9) {
                 // Using old get reading method that with float number string fixing
-                usingGetJson = false;
+                usingOldTnHGet = true;
             }
         }
 
@@ -281,14 +295,14 @@ bool CUsbSensor::update (void) {
 
     clearReading();
 
-    if (usingGetJson) {
-        if (getJsonReading() < 0)
+    if (usingOldTnHGet) {
+        if (getOldTnHReading() < 0)
             return false;
         else
             return true;
     }
     else {
-        if (getReading() < 0)
+        if (getJsonReading() < 0)
             return false;
         else
             return true;
@@ -429,9 +443,10 @@ int CUsbSensor::waitResponse (char *aResp, int aRespSize, int aTimeout) {
 // Clear reading
 //==========================================================================
 void CUsbSensor::clearReading (void) {
-    currentTemperature = std::nan("");
-    currentHumidity = std::nan("");
-    currentPressure = std::nan("");
+//    currentTemperature = std::nan("");
+//    currentHumidity = std::nan("");
+//    currentPressure = std::nan("");
+    currentJsonResult = QJsonObject();
 }
 
 //==========================================================================
@@ -453,18 +468,19 @@ int CUsbSensor::getJsonReading (void) {
         emit errorMessage ("Invalid JSON response.");
         return -1;
     }
+    currentJsonResult = j_doc.object();
 
-    QJsonObject j_obj = j_doc.object();
-    if (j_obj.contains ("T")) {
-        currentTemperature = j_obj["T"].toDouble ();
-    }
-    if (j_obj.contains ("H")) {
-        currentHumidity = j_obj["H"].toDouble ();
-    }
-    if (j_obj.contains ("P")) {
-        currentPressure = j_obj["P"].toDouble ();
-    }
-    DEBUG_PRINTF ("T=%.2f, H=%.2f, P=%.2f", currentTemperature, currentHumidity, currentPressure);
+//    QJsonObject j_obj = j_doc.object();
+//    if (j_obj.contains ("T")) {
+//        currentTemperature = j_obj["T"].toDouble ();
+//    }
+//    if (j_obj.contains ("H")) {
+//        currentHumidity = j_obj["H"].toDouble ();
+//    }
+//    if (j_obj.contains ("P")) {
+//        currentPressure = j_obj["P"].toDouble ();
+//    }
+//    DEBUG_PRINTF ("T=%.2f, H=%.2f, P=%.2f", currentTemperature, currentHumidity, currentPressure);
 
     return 0;
 }
@@ -472,44 +488,37 @@ int CUsbSensor::getJsonReading (void) {
 //==========================================================================
 // Get reading via traditional commands
 //==========================================================================
-int CUsbSensor::getReading (void) {
+int CUsbSensor::getOldTnHReading (void) {
     char resp[64];
+    int resp_len;
+    double temperature;
+    double humidity;
 
     // Get Temperature
-    if (currentHasTemperature) {
-        if (sendCommand("GT") < 0) {
-            return -1;
-        }
-        auto resp_len = waitResponse (resp, sizeof (resp));
-        if (resp_len < 0)
-            return -1;
-        FixOldFloatString (resp, sizeof (resp));
-        currentTemperature = atof (resp);
+    if (sendCommand("GT") < 0) {
+        return -1;
     }
+    resp_len = waitResponse (resp, sizeof (resp));
+    if (resp_len < 0)
+        return -1;
+    FixOldFloatString (resp, sizeof (resp));
+    temperature = atof (resp);
+
 
     // Get Humidity
-    if (currentHasHumidity) {
-        if (sendCommand("GH") < 0) {
-            return -1;
-        }
-        auto resp_len = waitResponse (resp, sizeof (resp));
-        if (resp_len < 0)
-            return -1;
-        FixOldFloatString (resp, sizeof (resp));
-        currentHumidity = atof (resp);
+    if (sendCommand("GH") < 0) {
+        return -1;
     }
+    resp_len = waitResponse (resp, sizeof (resp));
+    if (resp_len < 0)
+        return -1;
+    FixOldFloatString (resp, sizeof (resp));
+    humidity = atof (resp);
 
-    // Get Pressure
-    if (currentHasPressure) {
-        if (sendCommand("GP") < 0) {
-            return -1;
-        }
-        auto resp_len = waitResponse (resp, sizeof (resp));
-        if (resp_len < 0)
-            return -1;
-        FixOldFloatString (resp, sizeof (resp));
-        currentPressure = atof (resp);
-    }
+    QJsonObject j_obj;
+    j_obj.insert ("T", temperature);
+    j_obj.insert ("H", humidity);
+    currentJsonResult = j_obj;
 
     return 0;
 }
