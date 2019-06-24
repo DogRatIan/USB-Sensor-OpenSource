@@ -19,6 +19,7 @@
         <file>assets/app_icon.ico</file>
         <file>qml/Normal/Reading_PA.qml</file>
         <file>qml/Normal/Charting_PA.qml</file>
+        <file>assets/reload.svg</file>
     </qresource>
     <qresource prefix="/asset"/>
 </RCC>

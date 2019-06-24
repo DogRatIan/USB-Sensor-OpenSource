@@ -25,12 +25,12 @@ Page {
     // Functions
     //==========================================================================
     function clearReading () {
-        temperature = Number.NaN;
-        humidity = Number.NaN;
-        pressure = Number.NaN;
-        hasTemperature = true;
-        hasHumidity = true;
-        hasPressure = true;
+//        temperature = Number.NaN;
+//        humidity = Number.NaN;
+//        pressure = Number.NaN;
+//        hasTemperature = true;
+//        hasHumidity = true;
+//        hasPressure = true;
     }
 
     function connectSensor () {
@@ -65,12 +65,12 @@ Page {
         titleText: rootApp.title
 
         leftLogoVisible: true
-        leftLogoIconSource: "qrc:/assets/app_icon.png"
+        leftLogoIconSource: "../../assets/app_icon.png"
         onLeftButtonClicked: itemDrawer.open();
 
         rightButtonVisible: true
         rightButtonEnabled: !rootPage.portOpened
-        rightButtonIconSource: "qrc:/assets/settings-gears.svg"
+        rightButtonIconSource: "../../assets/settings-gears.svg"
         onRightButtonClicked: {
             navStack.push (pageConfig);
             rootTop.showMessageLog (false);
@@ -220,7 +220,7 @@ Page {
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.right: parent.right
                     anchors.margins: 5
-                    icon.source: "qrc:/assets/database.svg"
+                    icon.source: "../../assets/database.svg"
                     onClicked: {
                         navStack.push (pageStatistic);
                         rootTop.showMessageLog (false);
@@ -355,8 +355,8 @@ Page {
     //==========================================================================
     Component.onCompleted: {
         rootApp.appendMessageToLog (objectName + " created. ");
-        clearReading();
-        itemChart.clearData();
+//        clearReading();
+//        itemChart.clearData();
     }
 
     //==========================================================================

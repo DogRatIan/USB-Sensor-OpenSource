@@ -19,11 +19,17 @@ int main(int argc, char *argv[])
     qmlRegisterType <CStatistic>("com.dogratian.qml.Statistic", 1, 0, "Statistic");
 
     QApplication::setOrganizationName("DogRatIan");
-    app.setWindowIcon (QIcon("qrc:/assets/app_icon.ico"));
-
 
     QQmlApplicationEngine engine;
+
+#if (DEBUG)
+    qputenv ("QT_QUICK_CONTROLS_CONF", "./resources/qtquickcontrols2.conf");
+    engine.load(QStringLiteral("./resources/qml/Main.qml"));
+#else
+    app.setWindowIcon (QIcon("qrc:/assets/app_icon.ico"));
     engine.load(QUrl(QStringLiteral("qrc:/qml/Main.qml")));
+#endif
+
     if (engine.rootObjects().isEmpty())
         return -1;
 

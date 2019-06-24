@@ -40,7 +40,7 @@ Page {
         titleText: rootPage.title
 
         leftButtonVisible: true
-        leftButtonIconSource: "qrc:/assets/back-arrow.svg"
+        leftButtonIconSource: "../../assets/back-arrow.svg"
         onLeftButtonClicked: navStack.pop ();
 
     }
@@ -79,7 +79,7 @@ Page {
                     anchors.top: parent.top
                     anchors.right: parent.right
                     anchors.margins: 5
-                    icon.source: "qrc:/assets/reload.svg"
+                    icon.source: "../../assets/reload.svg"
                     onClicked: reloadPortList();
                 }
 

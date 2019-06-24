@@ -12,7 +12,6 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-RESOURCES += qml.qrc
 
 # Additional import path used to resolve QML modules in Qt Creator's code model
 QML_IMPORT_PATH =
@@ -21,8 +20,8 @@ QML_IMPORT_PATH =
 QML_DESIGNER_IMPORT_PATH =
 
 # Add DEBUG for debug.cpp
-CONFIG(release, debug|release):DEFINES += DEBUG=0 QT_NO_DEBUG_OUTPUT=1 QT_NO_WARNING_OUTPUT=1
-else:CONFIG(debug, debug|release):DEFINES += DEBUG=1
+#CONFIG(release, debug|release):DEFINES += DEBUG=0 QT_NO_DEBUG_OUTPUT=1 QT_NO_WARNING_OUTPUT=1
+#else:CONFIG(debug, debug|release):DEFINES += DEBUG=1
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -53,7 +52,7 @@ win32: LIBS+= -L$$PWD/../SharedLibrary/release -lShared_mingw_32
 RC_ICONS = assets/app_icon.ico
 
 $
-OTHER_FILES += $$PWD/qml $$PWD/assets
+OTHER_FILES += $$PWD/qml $$PWD/assets $$PWD/qtquickcontrols2.conf
 
 # copies the given files to the destination directory
 defineTest(copyToDestDir) {
@@ -72,8 +71,18 @@ defineTest(copyToDestDir) {
     export(QMAKE_POST_LINK)
 }
 
-create.commands = $(MKDIR) $$OUT_PWD/resources
-QMAKE_EXTRA_TARGETS += create
-POST_TARGETDEPS += create
+# debug/release settings
+CONFIG(debug, debug|release) {
+    DEFINES += DEBUG=1
 
-copyToDestDir($$OTHER_FILES, $$OUT_PWD/resources/)
+    create.commands = $(MKDIR) $$OUT_PWD/resources
+    QMAKE_EXTRA_TARGETS += create
+    POST_TARGETDEPS += create
+
+    copyToDestDir($$OTHER_FILES, $$OUT_PWD/resources/)
+}
+
+CONFIG(release, debug|release) {
+    DEFINES += DEBUG=0 QT_NO_DEBUG_OUTPUT=1 QT_NO_WARNING_OUTPUT=1
+    RESOURCES += qml.qrc
+}

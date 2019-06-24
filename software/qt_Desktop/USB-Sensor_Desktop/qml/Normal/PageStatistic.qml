@@ -72,7 +72,7 @@ Page {
         titleText: rootPage.title
 
         leftButtonVisible: true
-        leftButtonIconSource: "qrc:/assets/back-arrow.svg"
+        leftButtonIconSource: "../../assets/back-arrow.svg"
         onLeftButtonClicked: navStack.pop ();
     }
 
