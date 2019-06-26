@@ -54,9 +54,13 @@ public:
      ~CStatistic (void);
 
     // Methods for QML
+//    Q_INVOKABLE bool init (QList<QString>aName, QList<QString>aShortName);
     Q_INVOKABLE bool init (void);
     Q_INVOKABLE void clearFeedBuffer (void);
-    Q_INVOKABLE void feedData_PA (long aTimestamp, double aTemperature, double aHumidity, double aPressure);
+    Q_INVOKABLE void feedData (long aTimestamp, QString aName, double aValue );
+    Q_INVOKABLE void feedData (long aTimestamp);
+
+//    Q_INVOKABLE void feedData_PA (long aTimestamp, double aTemperature, double aHumidity, double aPressure);
     Q_INVOKABLE bool removeOldData (int aHoursAgo);
     Q_INVOKABLE bool exportData (QString aTargetPath);
 
@@ -65,16 +69,17 @@ public:
     Q_PROPERTY (double fileSize READ readFileSize)
     Q_PROPERTY (bool isReady READ readIsReady)
     Q_PROPERTY (long avaragePeriodLenght READ readAvaragePeriodLenght)
-    Q_PROPERTY (long currentPeriodStart READ readCurrentPeriodStart)
-    Q_PROPERTY (long currentPeriodEnd READ readCurrentPeriodEnd)
-    Q_PROPERTY (int avgTemperatureCount READ readAvgTemperatureCount)
-    Q_PROPERTY (int avgHumidityCount READ readAvgHumidityCount)
-    Q_PROPERTY (int avgPressureCount READ readAvgPressureCount)
-    Q_PROPERTY (double lastTemperature READ readLastTemperature)
-    Q_PROPERTY (double lastHumidity READ readLastHumidity)
-    Q_PROPERTY (double lastPressure READ readLastPressure)
-    Q_PROPERTY (long lastTimestamp READ readLastTimestamp)
-
+//    Q_PROPERTY (long currentPeriodStart READ readCurrentPeriodStart)
+//    Q_PROPERTY (long currentPeriodEnd READ readCurrentPeriodEnd)
+//    Q_PROPERTY (int avgTemperatureCount READ readAvgTemperatureCount)
+//    Q_PROPERTY (int avgHumidityCount READ readAvgHumidityCount)
+//    Q_PROPERTY (int avgPressureCount READ readAvgPressureCount)
+//    Q_PROPERTY (double lastTemperature READ readLastTemperature)
+//    Q_PROPERTY (double lastHumidity READ readLastHumidity)
+//    Q_PROPERTY (double lastPressure READ readLastPressure)
+//    Q_PROPERTY (long lastTimestamp READ readLastTimestamp)
+    Q_PROPERTY (QList<QString> valueNames READ readValueNames WRITE writeValueNames)
+    Q_PROPERTY (QList<QString> valueShortNames READ readValueShortNames WRITE writeValueShortNames)
 
 
     //
@@ -82,23 +87,29 @@ public:
     double readFileSize (void);
     bool readIsReady (void);
     long readAvaragePeriodLenght (void);
-    long readCurrentPeriodStart (void);
-    long readCurrentPeriodEnd (void);
-    int readAvgTemperatureCount (void);
-    int readAvgHumidityCount (void);
-    int readAvgPressureCount (void);
-    double readLastTemperature (void);
-    double readLastHumidity (void);
-    double readLastPressure (void);
-    long readLastTimestamp (void);
+//    long readCurrentPeriodStart (void);
+//    long readCurrentPeriodEnd (void);
+//    int readAvgTemperatureCount (void);
+//    int readAvgHumidityCount (void);
+//    int readAvgPressureCount (void);
+//    double readLastTemperature (void);
+//    double readLastHumidity (void);
+//    double readLastPressure (void);
+//    long readLastTimestamp (void);
+    QList<QString> readValueNames (void);
+    QList<QString> readValueShortNames (void);
+    void writeValueNames (QList<QString>aNames);
+    void writeValueShortNames (QList<QString>aShortNames);
 
-    //
 
 signals:
     void message (const QString aMessage);
     void errorMessage (const QString aMessage);
 
-    void feedDataFinished (void);
+//    void feedDataFinished (void);
+    void averagePeriodChanged (QString aPeriod);
+    void lastSavedChanged (QString aTime, QString aValue);
+    void dataCountChanged (QString aDataCount);
 
 private:
     QString currentFilename;
@@ -109,17 +120,27 @@ private:
     time_t timestampStart;
     time_t timestampEnd;
 
-    struct TAveraging avgTemperature;
-    struct TAveraging avgHumidity;
-    struct TAveraging avgPressure;
+//    struct TAveraging avgTemperature;
+//    struct TAveraging avgHumidity;
+//    struct TAveraging avgPressure;
 
-    time_t lastAverageTimestamp;
-    double lastAvgTemperature;
-    double lastAvgHumidity;
-    double lastAvgPressure;
+//    time_t lastAverageTimestamp;
+//    double lastAvgTemperature;
+//    double lastAvgHumidity;
+//    double lastAvgPressure;
+
+    QList<QString> nameList;
+    QList<QString> shortNameList;
+    QList<struct TAveraging> averageList;
+
+    QString lastSavedValues;
+    QString lastDataCount;
+
 
     QString getPath (void);
     void updateFileSize (void);
+
+    void clearAveraging (struct TAveraging *aAvg);
     void clearAllAveraging (void);
     void updateAveraging (struct TAveraging *aAveraging, double aNewValue);
     double saveAveraging (struct TAveraging *aAveraging, time_t aTimestamp, QString aTableName);

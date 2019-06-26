@@ -6,7 +6,7 @@ Page {
     id: rootPage
     title: qsTr("Statistic")
 
-    property var targetExportPath
+    property var targetExportPath: ""
 
     //==========================================================================
     // Functions
@@ -29,30 +29,30 @@ Page {
             textDatabaseFileSize.text = file_size.toFixed(2) + " MiB";
         }
 
-        if (itemStatistic.currentPeriodStart === itemStatistic.currentPeriodEnd) {
-            // No averaging
-            textAveragingPeriod.text = "Not running."
-        }
-        else {
-            var d_start = new Date (itemStatistic.currentPeriodStart * 1000);
-            var d_end = new Date (itemStatistic.currentPeriodEnd * 1000);
+//        if (itemStatistic.currentPeriodStart === itemStatistic.currentPeriodEnd) {
+//            // No averaging
+//            textAveragingPeriod.text = "Not running."
+//        }
+//        else {
+//            var d_start = new Date (itemStatistic.currentPeriodStart * 1000);
+//            var d_end = new Date (itemStatistic.currentPeriodEnd * 1000);
 
-            textAveragingPeriod.text = d_start.toTimeString() + " to " + d_end.toTimeString();
-        }
-        textAvgDataCount.text = "Temp=" + itemStatistic.avgTemperatureCount
-                                + ", Humi=" + itemStatistic.avgHumidityCount
-                                + ", Pressure=" + itemStatistic.avgPressureCount;
+//            textAveragingPeriod.text = d_start.toTimeString() + " to " + d_end.toTimeString();
+//        }
+//        textAvgDataCount.text = "Temp=" + itemStatistic.avgTemperatureCount
+//                                + ", Humi=" + itemStatistic.avgHumidityCount
+//                                + ", Pressure=" + itemStatistic.avgPressureCount;
 
-        textLastSavedData.text = "Temp=" + Number(itemStatistic.lastTemperature).toFixed(2)
-                                + ", Humi=" + Number(itemStatistic.lastHumidity).toFixed(2)
-                                + ", Pressure=" + Number(itemStatistic.lastPressure).toFixed(2);
-        if (parseInt(itemStatistic.lastTimestamp) === 0) {
-            textLastSavedTimestamp.text = " ";
-        }
-        else {
-            var d_last = new Date (itemStatistic.lastTimestamp * 1000);
-            textLastSavedTimestamp.text = d_last.toISOString();
-        }
+//        textLastSavedData.text = "Temp=" + Number(itemStatistic.lastTemperature).toFixed(2)
+//                                + ", Humi=" + Number(itemStatistic.lastHumidity).toFixed(2)
+//                                + ", Pressure=" + Number(itemStatistic.lastPressure).toFixed(2);
+//        if (parseInt(itemStatistic.lastTimestamp) === 0) {
+//            textLastSavedTimestamp.text = " ";
+//        }
+//        else {
+//            var d_last = new Date (itemStatistic.lastTimestamp * 1000);
+//            textLastSavedTimestamp.text = d_last.toISOString();
+//        }
     }
 
     function onFeedDataFinished() {
@@ -91,14 +91,17 @@ Page {
             LabeledText {
                 id: textDatabaseStatus
                 labelText: "DB status:"
+                text: dbStatus
             }
             LabeledText {
                 id: textDatabaseFilename
                 labelText: "DB filename:"
+                text: dbFilename
             }
             LabeledText {
                 id: textDatabaseFileSize
                 labelText: "DB file size:"
+                text: dbFileSize
             }
 
             HorizontalLine {
@@ -107,18 +110,22 @@ Page {
             LabeledText {
                 id: textAveragingPeriod
                 labelText: "Averaging Period:"
+                text: averagingPeriod
             }
             LabeledText {
                 id: textAvgDataCount
                 labelText: "Data count:"
+                text: lastDataCount
             }
             LabeledText {
                 id: textLastSavedData
                 labelText: "Last saved:"
+                text: lastSavedValues
             }
             LabeledText {
                 id: textLastSavedTimestamp
                 labelText: " "
+                text: lastSavedTime
             }
 
             HorizontalLine {
@@ -240,11 +247,12 @@ Page {
     //==========================================================================
     Component.onCompleted: {
         appendMessageToLog (objectName + " created.");
-        updateStatus ();
-        itemStatistic.feedFinishedCallback = rootPage.onFeedDataFinished;
+        rootApp.updateDbInfo ();
+//        updateStatus ();
+//        itemStatistic.feedFinishedCallback = rootPage.onFeedDataFinished;
         targetExportPath = itemConfig.getStringData ("lastExportPath");
     }
     Component.onDestruction: {
-        itemStatistic.feedFinishedCallback = undefined;
+//        itemStatistic.feedFinishedCallback = undefined;
     }
 }

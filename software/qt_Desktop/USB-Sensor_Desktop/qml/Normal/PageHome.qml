@@ -47,14 +47,13 @@ Page {
         switch (itemUsbSensor.deviceType) {
         case "USB-TnH":
             loaderReading.source = "Reading_PA.qml";
-            loaderCharting.source = "Charting_PA.qml";
+            loaderCharting.source = "Charting_TnH.qml";
             break;
         case "USB-PA":
             loaderReading.source = "Reading_PA.qml";
             loaderCharting.source = "Charting_PA.qml";
             break;
         }
-
     }
 
 
@@ -393,6 +392,11 @@ Page {
                 try {
                     result = JSON.parse (itemUsbSensor.result);
                     console.log ("Result:" + JSON.stringify(result));
+
+                    // Convert Pa to hPa
+                    if (result.P !== undefined) {
+                        result.P /= 100;
+                    }
                 }
                 catch (e){
                     console.log ("JSON parse error.");
@@ -414,9 +418,19 @@ Page {
                 loaderCharting.item.rollData (result);
             }
 
+            if (result.T !== undefined) {
+                itemStatistic.feedData (timestamp, "temperature", result.T);
+            }
+            if (result.H !== undefined) {
+                itemStatistic.feedData (timestamp, "humidity", result.H);
+            }
+            if (result.P !== undefined) {
+                itemStatistic.feedData (timestamp, "pressure", result.P);
+            }
+            itemStatistic.feedData (timestamp);
 
 //            itemChart.rollData (temperature, humidity, pressure);
-            itemStatistic.feedData_PA (timestamp, result.T, result.H, result.P);
+//            itemStatistic.feedData_PA (timestamp, result.T, result.H, result.P);
         }
     }
 

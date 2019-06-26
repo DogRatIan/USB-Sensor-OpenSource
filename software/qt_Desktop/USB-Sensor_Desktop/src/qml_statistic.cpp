@@ -70,14 +70,23 @@ CStatistic::CStatistic (QObject *aParent) :
 CStatistic::~CStatistic (void) {
 }
 
-
 //==========================================================================
 // Initialization
 //==========================================================================
+//bool CStatistic::init (QList<QString>aName, QList<QString>aShortName) {
 bool CStatistic::init (void) {
+    DEBUG_PRINTF ("init() nameList len=%d", nameList.length());
     try {
         QString sql;
         auto path = getPath ();
+
+        // Clear averaging
+        averageList.clear();
+
+//        // Save name List
+//        nameList = aName;
+//        shortNameList = aShortName;
+
 
         // Connecto to database file
         auto conn_ret = database.connect (path.toUtf8().data(), SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nullptr);
@@ -87,21 +96,19 @@ bool CStatistic::init (void) {
         }
         database.set_busy_timeout (2000);
 
+        for (int i = 0; i < nameList.length(); i ++) {
+            struct TAveraging averaging;
+            averageList.push_front(averaging);
 
-        sql = "CREATE TABLE IF NOT EXISTS temperature_1min (timestamp INTEGER PRIMARY KEY UNIQUE NOT NULL,"
-                "avg REAL, max REAL,min REAL);";
-        DEBUG_PRINTF ("SQL:%s", sql.toUtf8().data());
-        database.execute (sql.toUtf8().data());
+            // Create DB tables
+            QString reading_name = nameList.at(i);
+            if (reading_name.length() == 0)
+                continue;
 
-        sql = "CREATE TABLE IF NOT EXISTS humidity_1min (timestamp INTEGER PRIMARY KEY UNIQUE NOT NULL,"
-                "avg REAL, max REAL,min REAL);";
-        DEBUG_PRINTF ("SQL:%s", sql.toUtf8().data());
-        database.execute (sql.toUtf8().data());
-
-        sql = "CREATE TABLE IF NOT EXISTS pressure_1min (timestamp INTEGER PRIMARY KEY UNIQUE NOT NULL,"
-                "avg REAL, max REAL,min REAL);";
-        DEBUG_PRINTF ("SQL:%s", sql.toUtf8().data());
-        database.execute (sql.toUtf8().data());
+            sql = QString ("CREATE TABLE IF NOT EXISTS %1_1min (timestamp INTEGER PRIMARY KEY UNIQUE NOT NULL,"
+                    "avg REAL, max REAL,min REAL);").arg (reading_name);
+            DEBUG_PRINTF ("SQL:%s", sql.toUtf8().data());
+        }
 
         //
         databaseReady = true;
@@ -119,48 +126,136 @@ bool CStatistic::init (void) {
 // Clear feed buffer
 //==========================================================================
 void CStatistic::clearFeedBuffer (void) {
+    clearAllAveraging ();
+
     timestampStart = 0;
     timestampEnd = 0;
-    clearAllAveraging ();
-    lastAverageTimestamp = 0;
-    lastAvgTemperature = std::nan("");
-    lastAvgHumidity = std::nan("");
-    lastAvgPressure = std::nan("");
+    emit averagePeriodChanged ("");
+
+    lastSavedValues.clear();
+    emit lastSavedChanged ("", lastSavedValues);
+
+    lastDataCount.clear();
+    emit dataCountChanged (lastDataCount);
+
 }
 
 //==========================================================================
-// Feed data for statistic for USB-PA and USB-TnH
+// Feed a data
 //==========================================================================
-void CStatistic::feedData_PA (time_t aTimestamp, double aTemperature, double aHumidity, double aPressure) {
-    if (!databaseReady)
+void CStatistic::feedData (long aTimestamp, QString aName, double aValue ) {
+    int index = nameList.indexOf (aName);
+    if (index < 0) {
+        DEBUG_PRINTF ("Reading %s not found.", qUtf8Printable(aName));
         return;
+    }
 
-    DEBUG_PRINTF ("feedData %lu, %.2f, %.2f, %.2f", aTimestamp, aTemperature, aHumidity, aPressure);
+    QString short_name = aName;
+    if (index < shortNameList.length()) {
+        short_name = shortNameList.at(index);
+    }
+
+    DEBUG_PRINTF ("feedData %s, %lu, %.2f", qUtf8Printable(aName), aTimestamp, aValue);
+
+    auto avg_info = averageList.at (index);
+
     if ((aTimestamp < timestampStart) || (aTimestamp > timestampEnd)) {
 
         // Save averaging result
         if (timestampStart != timestampEnd) {
-            lastAverageTimestamp = timestampEnd;
-            lastAvgTemperature = saveAveraging (&avgTemperature, lastAverageTimestamp, "temperature_1min");
-            lastAvgHumidity = saveAveraging (&avgHumidity, lastAverageTimestamp, "humidity_1min");
-            lastAvgPressure = saveAveraging (&avgPressure, lastAverageTimestamp, "pressure_1min");
+            QString table_name = aName + "_1min";
+            auto last_save_value = saveAveraging (&avg_info, timestampEnd, table_name);
+
+            QString str_value;
+            str_value.sprintf ("%s=%.2f", qUtf8Printable(short_name), last_save_value);
+            if (lastSavedValues.length() > 0) {
+                lastSavedValues.append (", ");
+            }
+            lastSavedValues.append (str_value);
         }
 
-        // Start new averaging period
-        timestampStart = (aTimestamp / TIME_AVERAGE_PERIOD) * TIME_AVERAGE_PERIOD + 1;
-        timestampEnd = timestampStart + TIME_AVERAGE_PERIOD - 1;
-        DEBUG_PRINTF ("Average Period %lu to %lu", timestampStart, timestampEnd);
-
-        clearAllAveraging ();
+        clearAveraging (&averageList[index]);
     }
 
-    // Do averaging
-    updateAveraging (&avgTemperature, aTemperature);
-    updateAveraging (&avgHumidity, aHumidity);
-    updateAveraging (&avgPressure, aPressure);
-    updateFileSize ();
-    emit feedDataFinished ();
+    updateAveraging (&averageList[index], aValue);
+
+    QString str_count;
+    str_count.sprintf ("%s=%d", qUtf8Printable(short_name), averageList[index].dataCount);
+    if (lastDataCount.length() > 0) {
+        lastDataCount.append (", ");
+    }
+    lastDataCount.append (str_count);
 }
+
+//==========================================================================
+// End of Feed data
+//==========================================================================
+void CStatistic::feedData (long aTimestamp) {
+    updateFileSize ();
+
+    if ((aTimestamp < timestampStart) || (aTimestamp > timestampEnd)) {
+        // Start new averaging period
+        time_t start = (aTimestamp / TIME_AVERAGE_PERIOD) * TIME_AVERAGE_PERIOD + 1;
+        timestampStart = start;
+        timestampEnd = start + TIME_AVERAGE_PERIOD - 1;
+        DEBUG_PRINTF ("  Average Period %lu to %lu", timestampStart, timestampEnd);
+
+        QDateTime date_start;
+        QDateTime date_end;
+        date_start.setSecsSinceEpoch (timestampStart);
+        date_end.setSecsSinceEpoch (timestampEnd);
+        QString str_period = QString ("%1 to %2").arg (date_start.toString ("HH:mm:ss")).arg (date_end.toString ("HH:mm:ss"));
+        DEBUG_PRINTF ("  Average Period %s", qUtf8Printable(str_period));
+        emit averagePeriodChanged (str_period);
+
+        DEBUG_PRINTF ("  Last saved: %s", qUtf8Printable(lastSavedValues));
+        if (lastSavedValues.length() > 0)
+            emit lastSavedChanged (date_end.toString ("HH:mm:ss"), lastSavedValues);
+        else
+            emit lastSavedChanged ("", lastSavedValues);
+        lastSavedValues.clear();
+    }
+
+    DEBUG_PRINTF ("  Last data count: %s", qUtf8Printable(lastDataCount));
+    emit dataCountChanged (lastDataCount);
+    lastDataCount.clear();
+
+}
+
+
+//==========================================================================
+// Feed data for statistic for USB-PA and USB-TnH
+//==========================================================================
+//void CStatistic::feedData_PA (time_t aTimestamp, double aTemperature, double aHumidity, double aPressure) {
+//    if (!databaseReady)
+//        return;
+
+//    DEBUG_PRINTF ("feedData %lu, %.2f, %.2f, %.2f", aTimestamp, aTemperature, aHumidity, aPressure);
+//    if ((aTimestamp < timestampStart) || (aTimestamp > timestampEnd)) {
+
+//        // Save averaging result
+//        if (timestampStart != timestampEnd) {
+//            lastAverageTimestamp = timestampEnd;
+//            lastAvgTemperature = saveAveraging (&avgTemperature, lastAverageTimestamp, "temperature_1min");
+//            lastAvgHumidity = saveAveraging (&avgHumidity, lastAverageTimestamp, "humidity_1min");
+//            lastAvgPressure = saveAveraging (&avgPressure, lastAverageTimestamp, "pressure_1min");
+//        }
+
+//        // Start new averaging period
+//        timestampStart = (aTimestamp / TIME_AVERAGE_PERIOD) * TIME_AVERAGE_PERIOD + 1;
+//        timestampEnd = timestampStart + TIME_AVERAGE_PERIOD - 1;
+//        DEBUG_PRINTF ("Average Period %lu to %lu", timestampStart, timestampEnd);
+
+//        clearAllAveraging ();
+//    }
+
+//    // Do averaging
+//    updateAveraging (&avgTemperature, aTemperature);
+//    updateAveraging (&avgHumidity, aHumidity);
+//    updateAveraging (&avgPressure, aPressure);
+//    updateFileSize ();
+//    emit feedDataFinished ();
+//}
 
 //==========================================================================
 // Remove old data
@@ -260,42 +355,57 @@ long CStatistic::readAvaragePeriodLenght (void) {
     return TIME_AVERAGE_PERIOD;
 }
 
-long CStatistic::readCurrentPeriodStart (void) {
-    return timestampStart;
+//long CStatistic::readCurrentPeriodStart (void) {
+//    return timestampStart;
+//}
+
+//long CStatistic::readCurrentPeriodEnd (void) {
+//    return timestampEnd;
+//}
+
+//int CStatistic::readAvgTemperatureCount (void) {
+//    return avgTemperature.dataCount;
+//}
+
+//int CStatistic::readAvgHumidityCount (void) {
+//    return avgHumidity.dataCount;
+//}
+
+//int CStatistic::readAvgPressureCount (void) {
+//    return avgPressure.dataCount;
+//}
+
+//double CStatistic::readLastTemperature (void) {
+//    return lastAvgTemperature;
+//}
+
+//double CStatistic::readLastHumidity (void) {
+//    return lastAvgHumidity;
+//}
+
+//double CStatistic::readLastPressure (void) {
+//    return lastAvgPressure;
+//}
+
+//long CStatistic::readLastTimestamp (void) {
+//    return lastAverageTimestamp;
+//}
+
+QList<QString> CStatistic::readValueNames (void) {
+    return nameList;
 }
 
-long CStatistic::readCurrentPeriodEnd (void) {
-    return timestampEnd;
+void CStatistic::writeValueNames (QList<QString>aNames) {
+    nameList = aNames;
 }
 
-int CStatistic::readAvgTemperatureCount (void) {
-    return avgTemperature.dataCount;
+void CStatistic::writeValueShortNames (QList<QString>aShortNames) {
+    shortNameList = aShortNames;
 }
 
-int CStatistic::readAvgHumidityCount (void) {
-    return avgHumidity.dataCount;
+QList<QString> CStatistic:: readValueShortNames (void) {
+    return shortNameList;
 }
-
-int CStatistic::readAvgPressureCount (void) {
-    return avgPressure.dataCount;
-}
-
-double CStatistic::readLastTemperature (void) {
-    return lastAvgTemperature;
-}
-
-double CStatistic::readLastHumidity (void) {
-    return lastAvgHumidity;
-}
-
-double CStatistic::readLastPressure (void) {
-    return lastAvgPressure;
-}
-
-long CStatistic::readLastTimestamp (void) {
-    return lastAverageTimestamp;
-}
-
 
 //==========================================================================
 //==========================================================================
@@ -331,24 +441,38 @@ void CStatistic::updateFileSize (void) {
     }
 }
 
+//==========================================================================
+// Clear averaging data
+//==========================================================================
+void CStatistic::clearAveraging (struct TAveraging *aAvg) {
+    aAvg->dataCount = 0;
+    aAvg->dataSum = 0;
+    aAvg->min = std::nan ("");
+    aAvg->max = std::nan ("");
+}
 
 //==========================================================================
 // Clear all averaging
 //==========================================================================
 void CStatistic::clearAllAveraging (void) {
-    memset (&avgTemperature, 0, sizeof (struct TAveraging));
-    memset (&avgHumidity, 0, sizeof (struct TAveraging));
-    memset (&avgPressure, 0, sizeof (struct TAveraging));
+//    memset (&avgTemperature, 0, sizeof (struct TAveraging));
+//    memset (&avgHumidity, 0, sizeof (struct TAveraging));
+//    memset (&avgPressure, 0, sizeof (struct TAveraging));
 
-    avgTemperature.dataSum = 0;
-    avgHumidity.dataSum = 0;
-    avgPressure.dataSum = 0;
-    avgTemperature.min = std::nan ("");
-    avgTemperature.max = std::nan ("");
-    avgHumidity.min = std::nan ("");
-    avgHumidity.max = std::nan ("");
-    avgPressure.min = std::nan ("");
-    avgPressure.max = std::nan ("");
+//    avgTemperature.dataSum = 0;
+//    avgHumidity.dataSum = 0;
+//    avgPressure.dataSum = 0;
+//    avgTemperature.min = std::nan ("");
+//    avgTemperature.max = std::nan ("");
+//    avgHumidity.min = std::nan ("");
+//    avgHumidity.max = std::nan ("");
+//    avgPressure.min = std::nan ("");
+//    avgPressure.max = std::nan ("");
+
+    for (int i = 0; i < averageList.length(); i ++) {
+        clearAveraging (&averageList[i]);
+    }
+
 }
 
 //==========================================================================

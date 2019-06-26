@@ -16,10 +16,23 @@ ApplicationWindow {
     title: qsTr("DogRatIan USB-Sensor (Desktop)")
     font.family: "Verdana"
 
+    //==========================================================================
     // Properties
+    //==========================================================================
     property var viewMessageLog
     property var selectedPort
+    property string averagingPeriod: "Not Running"
+    property string lastSavedValues: "-"
+    property string lastSavedTime: "-"
+    property string lastDataCount: "-"
 
+    property string dbStatus: "-"
+    property string dbFilename: "-"
+    property string dbFileSize: "-"
+
+    //==========================================================================
+    // Functions
+    //==========================================================================
     // Function - Append to message log
     function appendMessageToLog (aMsg) {
         var msg = {message: aMsg};
@@ -58,6 +71,26 @@ ApplicationWindow {
         textSystemMessage.text = aMessage;
         dialogSystemMessage.title = aTitle;
         dialogSystemMessage.open();
+    }
+
+    // Update DB info
+    function updateDbInfo () {
+        if (itemStatistic.isReady) {
+            dbStatus = "Ready";
+        }
+        else {
+            dbStatus = "Not connected.";
+        }
+        dbFilename = itemStatistic.filename;
+
+        var file_size =  Number (itemStatistic.fileSize);
+        if (file_size < 1) {
+            file_size *= 1024;
+            dbFileSize = file_size.toFixed(2) + " KiB";
+        }
+        else {
+            dbFileSize = file_size.toFixed(2) + " MiB";
+        }
     }
 
     //==========================================================================
@@ -156,11 +189,14 @@ ApplicationWindow {
         onErrorMessage: {
             console.log ("UsbSensor ERROR: " + aMessage);
             lastErrorMessage = aMessage;
-        }
+        }        
     }
 
     Statistic {
         id: itemStatistic
+
+        valueNames: ["temperature", "humidity", "pressure", "tvoc", "co2eq"]
+        valueShortNames: ["Temp", "Humi", "Pres", "TVOC", "CO2eq"]
 
         property var feedFinishedCallback
 
@@ -171,10 +207,24 @@ ApplicationWindow {
             rootApp.showSystemMessage (qsTr ("ERROR"), aMessage);
         }
 
-        onFeedDataFinished: {
-            if (typeof (feedFinishedCallback) === "function") {
-                feedFinishedCallback ();
-            }
+//        onFeedDataFinished: {
+//            if (typeof (feedFinishedCallback) === "function") {
+//                feedFinishedCallback ();
+//            }
+//        }
+
+        onAveragePeriodChanged: {
+            averagingPeriod = aPeriod;
+            updateDbInfo ();
+        }
+
+        onLastSavedChanged: {
+            lastSavedValues = aValue;
+            lastSavedTime = aTime;
+        }
+
+        onDataCountChanged: {
+            lastDataCount = aDataCount;
         }
     }
 
