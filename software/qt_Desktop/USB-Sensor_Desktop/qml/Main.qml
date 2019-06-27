@@ -19,6 +19,9 @@ ApplicationWindow {
     //==========================================================================
     // Properties
     //==========================================================================
+    property string programVersion: "V1.00"
+    property string gitHash: " "
+
     property var viewMessageLog
     property var selectedPort
     property string averagingPeriod: "Not Running"
@@ -29,6 +32,7 @@ ApplicationWindow {
     property string dbStatus: "-"
     property string dbFilename: "-"
     property string dbFileSize: "-"
+
 
     //==========================================================================
     // Functions
@@ -203,15 +207,10 @@ ApplicationWindow {
         onMessage: {
             rootApp.appendMessageToLog (aMessage);
         }
+
         onErrorMessage: {
             rootApp.showSystemMessage (qsTr ("ERROR"), aMessage);
         }
-
-//        onFeedDataFinished: {
-//            if (typeof (feedFinishedCallback) === "function") {
-//                feedFinishedCallback ();
-//            }
-//        }
 
         onAveragePeriodChanged: {
             averagingPeriod = aPeriod;

@@ -21,6 +21,8 @@
         <file>qml/Normal/Charting_PA.qml</file>
         <file>assets/reload.svg</file>
         <file>qml/Normal/Charting_TnH.qml</file>
+        <file>qml/Normal/Reading_VOC.qml</file>
+        <file>qml/Normal/Charting_VOC.qml</file>
     </qresource>
     <qresource prefix="/asset"/>
 </RCC>

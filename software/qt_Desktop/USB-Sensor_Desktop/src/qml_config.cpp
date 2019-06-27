@@ -144,16 +144,6 @@ bool CConfig::save (void) {
 }
 
 //==========================================================================
-// Read/Write properties
-//==========================================================================
-QString CConfig::readFilename (void) {
-    return currentFilename;
-}
-void CConfig::writeFilename (QString aValue) {
-    currentFilename = aValue;
-}
-
-//==========================================================================
 // Set/Get a string data
 //==========================================================================
 bool CConfig::setStringData (QString aName, QString aValue) {
@@ -175,6 +165,43 @@ QString CConfig::getStringData (QString aName) {
     }
 }
 
+//==========================================================================
+// Get Git hash
+//==========================================================================
+QString CConfig::getGitHash (void) {
+    auto app_path = QCoreApplication::applicationDirPath();
+    QFileInfo file_info (app_path + "/git_hash.txt");
+    if (!file_info.exists()) {
+        DEBUG_PRINTF ("%s not found.", qUtf8Printable(file_info.filePath()));
+
+        file_info.setFile (app_path, "../git_hash.txt");
+        DEBUG_PRINTF ("Try %s", qUtf8Printable(file_info.filePath()));
+        if (!file_info.exists()) {
+            DEBUG_PRINTF ("Not found.");
+            return "";
+        }
+    }
+
+    QString hash_string;
+    QFile hash_file (file_info.filePath());
+    if (hash_file.open (QIODevice::ReadOnly | QIODevice::Text)) {
+        QByteArray line = hash_file.readLine (256);
+        hash_string = line.trimmed();
+    }
+
+    DEBUG_PRINTF ("Git hash=%s", qUtf8Printable(hash_string));
+    return hash_string;
+}
+
+//==========================================================================
+// Read/Write properties
+//==========================================================================
+QString CConfig::readFilename (void) {
+    return currentFilename;
+}
+void CConfig::writeFilename (QString aValue) {
+    currentFilename = aValue;
+}
 
 //==========================================================================
 //==========================================================================

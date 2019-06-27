@@ -13,27 +13,24 @@ Page {
     //==========================================================================
     property bool portOpened: false
     property string deviceName: " "
-//    property real temperature: 0
-//    property real humidity: 0
-//    property real pressure: 0
-//    property bool hasTemperature: true
-//    property bool hasHumidity: true
-//    property bool hasPressure: true
-//    property var arrayTemperature: []
 
     //==========================================================================
     // Functions
     //==========================================================================
-    function clearReading () {
-//        temperature = Number.NaN;
-//        humidity = Number.NaN;
-//        pressure = Number.NaN;
-//        hasTemperature = true;
-//        hasHumidity = true;
-//        hasPressure = true;
-    }
-
     function connectSensor () {
+        if (rootApp.selectedPort === undefined) {
+            rootApp.showSystemMessage ("ERROR", "Please select port first.");
+            deviceName = " ";
+            return;
+        }
+        if (rootApp.selectedPort !== undefined) {
+            if (rootApp.selectedPort.name.length === 0) {
+                rootApp.showSystemMessage ("ERROR", "Please select port first.");
+                deviceName = " ";
+                return;
+            }
+        }
+
         if (!itemUsbSensor.open (rootApp.selectedPort.name)) {
             rootApp.showSystemMessage ("ERROR", itemUsbSensor.lastErrorMessage);
             deviceName = " ";
@@ -52,6 +49,10 @@ Page {
         case "USB-PA":
             loaderReading.source = "Reading_PA.qml";
             loaderCharting.source = "Charting_PA.qml";
+            break;
+        case "USB-VOC":
+            loaderReading.source = "Reading_VOC.qml";
+            loaderCharting.source = "Charting_VOC.qml";
             break;
         }
     }
@@ -88,7 +89,10 @@ Page {
         }
 
         Column {
-            anchors.fill: parent
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.bottom: boxVersion.top
 
             Label {
                 text: qsTr ("MENU")
@@ -129,6 +133,33 @@ Page {
                 onClicked: {
                     Qt.quit();
                 }
+            }
+        }
+
+        Item {
+            id: boxVersion
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            height: 50
+
+            HorizontalLine {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: parent.top
+
+            }
+
+            Text {
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.bottom: parent.verticalCenter
+                text: programVersion
+                font.pixelSize: 14
+            }
+            Text {
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.top: parent.verticalCenter
+                text: gitHash
             }
         }
     }
@@ -177,7 +208,6 @@ Page {
                     text: qsTr("Start")
                     enabled: !portOpened
                     onClicked: {
-//                        itemChart.clearData();
                         buttonOpenPort.focus = true;
                         itemStatistic.clearFeedBuffer ();
                         if (rootApp.selectedPort) {
@@ -197,7 +227,6 @@ Page {
                         rootApp.appendMessageToLog (rootApp.selectedPort.name + " closed.");
                         portOpened = false;
                         deviceName = " ";
-                        clearReading();
                     }
                 }
             }
@@ -212,8 +241,6 @@ Page {
                 anchors.right: parent.right
                 height: 40
 
-//                source: "Reading_PA.qml"
-
                 // Statistic button
                 ToolButton {
                     anchors.verticalCenter: parent.verticalCenter
@@ -226,88 +253,6 @@ Page {
                     }
                 }
             }
-
-//            Item {
-//                anchors.left: parent.left
-//                anchors.right: parent.right
-//                height: 40
-
-//                Grid {
-//                    id: boxReading
-//                    anchors.horizontalCenter: parent.horizontalCenter
-//                    columns: 2
-//                    spacing: 10
-
-//                    Row {
-//                        width: 200
-//                        height: 15
-//                        spacing: 5
-//                        visible: hasTemperature
-
-//                        Rectangle {
-//                            height: 12
-//                            width: 12
-//                            border.width: 1
-//                            color: "gold"
-//                            anchors.verticalCenter: parent.verticalCenter
-//                        }
-//                        Label {
-//                            anchors.verticalCenter: parent.verticalCenter
-//                            text: "Temperature: " + temperature.toFixed(2) + " °C"
-//                        }
-//                    }
-
-//                    Row {
-//                        width: 200
-//                        height: 15
-//                        spacing: 5
-//                        visible: hasHumidity
-
-//                        Rectangle {
-//                            height: 12
-//                            width: 12
-//                            border.width: 1
-//                            color: "cyan"
-//                            anchors.verticalCenter: parent.verticalCenter
-//                        }
-//                        Label {
-//                            anchors.verticalCenter: parent.verticalCenter
-//                            text: "Humidity: " + humidity.toFixed(2) + " %RH"
-//                        }
-//                    }
-
-//                    Row {
-//                        width: 200
-//                        height: 15
-//                        spacing: 5
-//                        visible: hasPressure
-
-//                        Rectangle {
-//                            height: 12
-//                            width: 12
-//                            border.width: 1
-//                            color: "greenyellow"
-//                            anchors.verticalCenter: parent.verticalCenter
-//                        }
-//                        Label {
-//                            anchors.verticalCenter: parent.verticalCenter
-//                            text: "Pressure: " + pressure.toFixed(4) + " hPa"
-//                        }
-//                    }
-//                }
-
-//                // Statistic button
-//                ToolButton {
-//                    anchors.verticalCenter: parent.verticalCenter
-//                    anchors.right: parent.right
-//                    anchors.margins: 5
-//                    icon.source: "qrc:/assets/database.svg"
-//                    onClicked: {
-//                        navStack.push (pageStatistic);
-//                        rootTop.showMessageLog (false);
-//                    }
-//                }
-//            }
 
             // Horizontal Line
             Rectangle {
@@ -332,21 +277,6 @@ Page {
             }
 
         }
-
-//        RollingChart {
-//            id: itemChart
-//            anchors.top: boxInfo.bottom
-//            anchors.left: parent.left
-//            anchors.right: parent.right
-//            anchors.bottom: parent.bottom
-
-//            lineTemperature.color: "gold"
-//            lineTemperature.visible: hasTemperature
-//            lineHumidity.color: "cyan"
-//            lineHumidity.visible: hasHumidity
-//            linePressure.color: "greenyellow"
-//            linePressure.visible: hasPressure
-//        }
     }
 
     //==========================================================================
@@ -354,8 +284,6 @@ Page {
     //==========================================================================
     Component.onCompleted: {
         rootApp.appendMessageToLog (objectName + " created. ");
-//        clearReading();
-//        itemChart.clearData();
     }
 
     //==========================================================================
@@ -427,6 +355,14 @@ Page {
             if (result.P !== undefined) {
                 itemStatistic.feedData (timestamp, "pressure", result.P);
             }
+            if (result.TVOC !== undefined) {
+                itemStatistic.feedData (timestamp, "tvoc", result.TVOC);
+            }
+            if (result.CO2eq !== undefined) {
+                itemStatistic.feedData (timestamp, "co2eq", result.CO2eq);
+            }
+
+
             itemStatistic.feedData (timestamp);
 
 //            itemChart.rollData (temperature, humidity, pressure);

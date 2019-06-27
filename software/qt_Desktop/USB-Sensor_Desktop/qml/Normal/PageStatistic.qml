@@ -11,55 +11,6 @@ Page {
     //==========================================================================
     // Functions
     //==========================================================================
-    function updateStatus () {
-        if (itemStatistic.isReady) {
-            textDatabaseStatus.text = "Ready";
-        }
-        else {
-            textDatabaseStatus.text = "Not connected.";
-        }
-        textDatabaseFilename.text = itemStatistic.filename;
-
-        var file_size =  Number (itemStatistic.fileSize);
-        if (file_size < 1) {
-            file_size *= 1024;
-            textDatabaseFileSize.text = file_size.toFixed(2) + " KiB";
-        }
-        else {
-            textDatabaseFileSize.text = file_size.toFixed(2) + " MiB";
-        }
-
-//        if (itemStatistic.currentPeriodStart === itemStatistic.currentPeriodEnd) {
-//            // No averaging
-//            textAveragingPeriod.text = "Not running."
-//        }
-//        else {
-//            var d_start = new Date (itemStatistic.currentPeriodStart * 1000);
-//            var d_end = new Date (itemStatistic.currentPeriodEnd * 1000);
-
-//            textAveragingPeriod.text = d_start.toTimeString() + " to " + d_end.toTimeString();
-//        }
-//        textAvgDataCount.text = "Temp=" + itemStatistic.avgTemperatureCount
-//                                + ", Humi=" + itemStatistic.avgHumidityCount
-//                                + ", Pressure=" + itemStatistic.avgPressureCount;
-
-//        textLastSavedData.text = "Temp=" + Number(itemStatistic.lastTemperature).toFixed(2)
-//                                + ", Humi=" + Number(itemStatistic.lastHumidity).toFixed(2)
-//                                + ", Pressure=" + Number(itemStatistic.lastPressure).toFixed(2);
-//        if (parseInt(itemStatistic.lastTimestamp) === 0) {
-//            textLastSavedTimestamp.text = " ";
-//        }
-//        else {
-//            var d_last = new Date (itemStatistic.lastTimestamp * 1000);
-//            textLastSavedTimestamp.text = d_last.toISOString();
-//        }
-    }
-
-    function onFeedDataFinished() {
-        console.log ("onFeedDataFinished");
-        updateStatus ();
-    }
-
     function onExportSelected (aDest) {
         console.log ("onExportSelected: " + aDest);
         targetExportPath = aDest;
@@ -248,11 +199,8 @@ Page {
     Component.onCompleted: {
         appendMessageToLog (objectName + " created.");
         rootApp.updateDbInfo ();
-//        updateStatus ();
-//        itemStatistic.feedFinishedCallback = rootPage.onFeedDataFinished;
         targetExportPath = itemConfig.getStringData ("lastExportPath");
     }
     Component.onDestruction: {
-//        itemStatistic.feedFinishedCallback = undefined;
     }
 }

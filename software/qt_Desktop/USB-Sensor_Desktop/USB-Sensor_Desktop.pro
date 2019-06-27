@@ -84,5 +84,8 @@ CONFIG(debug, debug|release) {
 
 CONFIG(release, debug|release) {
     DEFINES += DEBUG=0 QT_NO_DEBUG_OUTPUT=1 QT_NO_WARNING_OUTPUT=1
-    RESOURCES += qml.qrc
+    RESOURCES += qml.qrc    
 }
+
+# Generate git hash to output directory
+QMAKE_PRE_LINK += cd \""$$_PRO_FILE_PWD_"\" && sh gen_git_hash.sh \""$$OUT_PWD"\"

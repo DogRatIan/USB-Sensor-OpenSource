@@ -70,6 +70,10 @@ xcopy "%QT_DIR%\bin\libwinpthread-1.dll" . /y /e /q
 xcopy "%QT_DIR%\bin\libstdc++-6.dll" . /y /e /q
 xcopy "%QT_DIR%\bin\libgcc_s_dw2-1.dll" . /y /e /q
 
+REM Add extra files
+dir
+xcopy "%RELEASE_DIR%\git_hash.txt" . /y /q
+
 if "%~1"=="-s" goto END
 REM Gen installer package
 cd /d "%INSTALLER_DIR%"

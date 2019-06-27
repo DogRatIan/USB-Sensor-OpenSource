@@ -83,11 +83,6 @@ bool CStatistic::init (void) {
         // Clear averaging
         averageList.clear();
 
-//        // Save name List
-//        nameList = aName;
-//        shortNameList = aShortName;
-
-
         // Connecto to database file
         auto conn_ret = database.connect (path.toUtf8().data(), SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nullptr);
         if (conn_ret != SQLITE_OK) {
@@ -108,6 +103,7 @@ bool CStatistic::init (void) {
             sql = QString ("CREATE TABLE IF NOT EXISTS %1_1min (timestamp INTEGER PRIMARY KEY UNIQUE NOT NULL,"
                     "avg REAL, max REAL,min REAL);").arg (reading_name);
             DEBUG_PRINTF ("SQL:%s", sql.toUtf8().data());
+            database.execute (qUtf8Printable(sql));
         }
 
         //
@@ -522,6 +518,7 @@ double CStatistic::saveAveraging (struct TAveraging *aAveraging, time_t aTimesta
         database.execute (sql.toUtf8().data());
     }
     catch (std::exception& aError) {
+        DEBUG_PRINTF ("CStatistic save error. %s", qUtf8Printable(aError.what()));
         emit errorMessage (QString ("CStatistic save error. %1").arg (aError.what()));
     }
 

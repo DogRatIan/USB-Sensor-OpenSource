@@ -52,6 +52,7 @@ public:
     Q_INVOKABLE bool save (void);
     Q_INVOKABLE bool setStringData (QString aName, QString aValue);
     Q_INVOKABLE QString getStringData (QString aName);
+    Q_INVOKABLE QString getGitHash (void);
 
     // Properties for QML
     Q_PROPERTY (QString filename READ readFilename WRITE writeFilename)

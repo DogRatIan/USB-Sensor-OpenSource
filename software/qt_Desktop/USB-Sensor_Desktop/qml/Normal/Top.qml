@@ -113,6 +113,14 @@ Item {
             rootApp.selectedPort = {"name": port_name, "desc": port_desc};
         }
 
+        var git_hash = itemConfig.getGitHash ();
+        if (git_hash === "") {
+            rootApp.gitHash = " ";
+        }
+        else {
+            rootApp.gitHash = "(" + git_hash + ")";
+        }
+
         itemStatistic.init ();
         rootTop.showMessageLog (false);
     }
