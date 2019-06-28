@@ -96,12 +96,13 @@ bool CStatistic::init (void) {
             averageList.push_front(averaging);
 
             // Create DB tables
-            QString reading_name = nameList.at(i);
-            if (reading_name.length() == 0)
+            QString value_name = nameList.at(i);
+            if (value_name.length() == 0)
                 continue;
 
+            QString table_name = value_name + "_1min";
             sql = QString ("CREATE TABLE IF NOT EXISTS %1_1min (timestamp INTEGER PRIMARY KEY UNIQUE NOT NULL,"
-                    "avg REAL, max REAL,min REAL);").arg (reading_name);
+                    "avg REAL, max REAL,min REAL);").arg (table_name);
             DEBUG_PRINTF ("SQL:%s", sql.toUtf8().data());
             database.execute (qUtf8Printable(sql));
         }
@@ -218,41 +219,6 @@ void CStatistic::feedData (long aTimestamp) {
 
 }
 
-
-//==========================================================================
-// Feed data for statistic for USB-PA and USB-TnH
-//==========================================================================
-//void CStatistic::feedData_PA (time_t aTimestamp, double aTemperature, double aHumidity, double aPressure) {
-//    if (!databaseReady)
-//        return;
-
-//    DEBUG_PRINTF ("feedData %lu, %.2f, %.2f, %.2f", aTimestamp, aTemperature, aHumidity, aPressure);
-//    if ((aTimestamp < timestampStart) || (aTimestamp > timestampEnd)) {
-
-//        // Save averaging result
-//        if (timestampStart != timestampEnd) {
-//            lastAverageTimestamp = timestampEnd;
-//            lastAvgTemperature = saveAveraging (&avgTemperature, lastAverageTimestamp, "temperature_1min");
-//            lastAvgHumidity = saveAveraging (&avgHumidity, lastAverageTimestamp, "humidity_1min");
-//            lastAvgPressure = saveAveraging (&avgPressure, lastAverageTimestamp, "pressure_1min");
-//        }
-
-//        // Start new averaging period
-//        timestampStart = (aTimestamp / TIME_AVERAGE_PERIOD) * TIME_AVERAGE_PERIOD + 1;
-//        timestampEnd = timestampStart + TIME_AVERAGE_PERIOD - 1;
-//        DEBUG_PRINTF ("Average Period %lu to %lu", timestampStart, timestampEnd);
-
-//        clearAllAveraging ();
-//    }
-
-//    // Do averaging
-//    updateAveraging (&avgTemperature, aTemperature);
-//    updateAveraging (&avgHumidity, aHumidity);
-//    updateAveraging (&avgPressure, aPressure);
-//    updateFileSize ();
-//    emit feedDataFinished ();
-//}
-
 //==========================================================================
 // Remove old data
 //==========================================================================
@@ -307,23 +273,44 @@ bool CStatistic::removeOldData (int aHoursAgo) {
 // Export data
 //=========================================================================
 bool CStatistic::exportData (QString aTargetPath) {
-    QFileInfo info (aTargetPath);
-    if (!info.exists()) {
+
+    // Create sub directory
+    QDateTime now = QDateTime::currentDateTime();
+    QString sub_dir_name = "USB-Sensor_" + now.toString("yyyyMMdd");
+
+    QDir target_dir (aTargetPath);
+    if (!target_dir.exists()) {
         emit errorMessage (QString ("Export fail, '%1' not exist").arg(aTargetPath));
         return false;
     }
-    DEBUG_PRINTF ("Export to %s", aTargetPath.toUtf8().data());
+    target_dir.mkdir (sub_dir_name);
 
-    QString output_path;
-    output_path = aTargetPath + QDir::separator() + "temperature_1min.csv";
-    if (exportCsv (output_path, "temperature_1min") < 0)
+    QFileInfo info (aTargetPath + QDir::separator() + sub_dir_name);
+    if (!info.exists()) {
+        emit errorMessage (QString ("Export fail, fail to create '%1'").arg(info.filePath()));
         return false;
-    output_path = aTargetPath + QDir::separator() + "humidity_1min.csv";
-    if (exportCsv (output_path, "humidity_1min") < 0)
-        return false;
-    output_path = aTargetPath + QDir::separator() + "pressure_1min.csv";
-    if (exportCsv (output_path, "pressure_1min") < 0)
-        return false;
+    }
+    DEBUG_PRINTF ("Export to %s", qUtf8Printable(info.filePath()));
+
+    for (int i = 0; i < nameList.length(); i ++) {
+        QString value_name = nameList.at(i);
+        QString value_unit;
+        if (value_name.length() == 0)
+            continue;
+        if (i < unitList.length()) {
+            value_unit = unitList.at (i);
+        }
+
+        QString table_name = value_name + "_1min";
+        QString output_path = info.filePath() + QDir::separator() + table_name + ".csv";
+        QString title = QString ("Statistic report of %1.").arg (value_name);
+        if (value_unit.length() > 0) {
+            title.append (QString (" Unit in %2.").arg (value_unit));
+        }
+
+        if (exportCsv (output_path, table_name, title) < 0)
+            return false;
+    }
 
     return true;
 }
@@ -351,42 +338,6 @@ long CStatistic::readAvaragePeriodLenght (void) {
     return TIME_AVERAGE_PERIOD;
 }
 
-//long CStatistic::readCurrentPeriodStart (void) {
-//    return timestampStart;
-//}
-
-//long CStatistic::readCurrentPeriodEnd (void) {
-//    return timestampEnd;
-//}
-
-//int CStatistic::readAvgTemperatureCount (void) {
-//    return avgTemperature.dataCount;
-//}
-
-//int CStatistic::readAvgHumidityCount (void) {
-//    return avgHumidity.dataCount;
-//}
-
-//int CStatistic::readAvgPressureCount (void) {
-//    return avgPressure.dataCount;
-//}
-
-//double CStatistic::readLastTemperature (void) {
-//    return lastAvgTemperature;
-//}
-
-//double CStatistic::readLastHumidity (void) {
-//    return lastAvgHumidity;
-//}
-
-//double CStatistic::readLastPressure (void) {
-//    return lastAvgPressure;
-//}
-
-//long CStatistic::readLastTimestamp (void) {
-//    return lastAverageTimestamp;
-//}
-
 QList<QString> CStatistic::readValueNames (void) {
     return nameList;
 }
@@ -401,6 +352,14 @@ void CStatistic::writeValueShortNames (QList<QString>aShortNames) {
 
 QList<QString> CStatistic:: readValueShortNames (void) {
     return shortNameList;
+}
+
+void CStatistic::writeValueUnits (QList<QString>aUnits) {
+    unitList = aUnits;
+}
+
+QList<QString> CStatistic::readValueUnits (void) {
+    return unitList;
 }
 
 //==========================================================================
@@ -451,20 +410,6 @@ void CStatistic::clearAveraging (struct TAveraging *aAvg) {
 // Clear all averaging
 //==========================================================================
 void CStatistic::clearAllAveraging (void) {
-//    memset (&avgTemperature, 0, sizeof (struct TAveraging));
-//    memset (&avgHumidity, 0, sizeof (struct TAveraging));
-//    memset (&avgPressure, 0, sizeof (struct TAveraging));
-
-//    avgTemperature.dataSum = 0;
-//    avgHumidity.dataSum = 0;
-//    avgPressure.dataSum = 0;
-//    avgTemperature.min = std::nan ("");
-//    avgTemperature.max = std::nan ("");
-//    avgHumidity.min = std::nan ("");
-//    avgHumidity.max = std::nan ("");
-//    avgPressure.min = std::nan ("");
-//    avgPressure.max = std::nan ("");
-
     for (int i = 0; i < averageList.length(); i ++) {
         clearAveraging (&averageList[i]);
     }
@@ -528,7 +473,7 @@ double CStatistic::saveAveraging (struct TAveraging *aAveraging, time_t aTimesta
 //=========================================================================
 // Export to CSV file
 //=========================================================================
-int CStatistic::exportCsv (QString aOutputPath, QString aTableName) {
+int CStatistic::exportCsv (QString aOutputPath, QString aTableName, QString aTitle) {
     QString sql;
     QString str_output;
     QFile output_file (aOutputPath);
@@ -541,7 +486,8 @@ int CStatistic::exportCsv (QString aOutputPath, QString aTableName) {
             break;
         }
 
-        str_output = "timestamp, avg, min, max\n";
+        output_file.write(aTitle.toUtf8());
+        str_output = "\n\ntimestamp, avg, min, max\n";
         output_file.write(str_output.toUtf8());
 
         try {
@@ -549,6 +495,7 @@ int CStatistic::exportCsv (QString aOutputPath, QString aTableName) {
             DEBUG_PRINTF ("SQL:%s", sql.toUtf8().data());
             sqlite3pp::query qry (database, sql.toUtf8().data());
 
+            int export_count = 0;
             for (auto row = qry.begin(); row != qry.end(); ++row) {
                 auto timestamp = (*row).get<long long>(0);
                 QString str_avg = "NaN";
@@ -567,7 +514,9 @@ int CStatistic::exportCsv (QString aOutputPath, QString aTableName) {
 
                 str_output = QString ("%1, %2, %3, %4\n").arg(str_date).arg(str_avg).arg(str_min).arg(str_max);
                 output_file.write(str_output.toUtf8());
+                export_count ++;
             }
+            DEBUG_PRINTF ("aTableName %d record exported.", export_count);
 
         }
         catch (std::exception& aError) {

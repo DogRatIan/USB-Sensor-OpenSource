@@ -19,7 +19,7 @@ ApplicationWindow {
     //==========================================================================
     // Properties
     //==========================================================================
-    property string programVersion: "V1.00"
+    property string programVersion: "V1.00beta"
     property string gitHash: " "
 
     property var viewMessageLog
@@ -201,6 +201,7 @@ ApplicationWindow {
 
         valueNames: ["temperature", "humidity", "pressure", "tvoc", "co2eq"]
         valueShortNames: ["Temp", "Humi", "Pres", "TVOC", "CO2eq"]
+        valueUnits: ["°C", "%RH", "hPa", "ppb", "ppm"]
 
         property var feedFinishedCallback
 
