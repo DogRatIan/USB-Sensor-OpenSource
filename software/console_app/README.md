@@ -7,7 +7,7 @@ get_tnh : Command line program for USB-TnH
 # Compile (native linux)
 1) Install gcc compile.
 ```sh
-$ sudo apt-get install build-essential
+$ sudo apt install build-essential
 ```
 2) Build basic library
 ```sh
@@ -22,10 +22,10 @@ $ make clean
 $ make
 ```
 
-# Compile (Windows, cross-build under Ubuntu 16.04)
+# Compile (Windows, cross-build under Ubuntu 18.04)
 1) Install MinGW
 ```sh
-$ sudo apt-get install mingw-64
+$ sudo apt install mingw-w64
 ```
 2) Set enviroment for MinGW build
 ```sh

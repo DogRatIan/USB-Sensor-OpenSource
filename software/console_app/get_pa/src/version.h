@@ -10,8 +10,8 @@
 #define STR_PRJ_NAME_(x)        STR_PRJ_NAME1_(x)
 #define STR_PROGNAME            STR_PRJ_NAME_(PRJ_NAME)
 
-#define STR_VERSION             "V1.00.00"
-#define STR_COPYRIGHT           "Copyright 2016 DogRatIan"
+#define STR_VERSION             "V1.01.00"
+#define STR_COPYRIGHT           "Copyright DogRatIan"
 
 //==========================================================================
 // Version Informations
@@ -22,6 +22,11 @@
 /*
     History
    ------------------------------------------------------------------------
+    2019-JUL-08 (Version 1.01.00)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     1) Changed.    Output in 2 decimal point.
+     2) Added.      New option -P to change the pressure unit to hPa instead of Pa.
+
     2010-JAN-01 (Version 1.00.00)
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      1) Changed.    Accept lower case on device name under MSW.

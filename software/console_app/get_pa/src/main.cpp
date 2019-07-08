@@ -62,6 +62,7 @@ static CSerial gSerial;
 static bool gReadTemperature = false;
 static bool gReadHumidity = false;
 static bool gReadPressure = true;
+static bool gPressure_hPa = false;
 static bool gJsonFormat = false;
 static bool gReadName = false;
 
@@ -165,12 +166,13 @@ static void ShowHelp (void)
                  "  --help                          Show this help.\n"
                  "  -v, --verbose                   Verbose mode.\n"
                  "  -d DEVICE, --device=DEVICE      Set device / port.\n"
-                 "  -t, --temperature               Read Temperature (default)\n"
+                 "  -t, --temperature               Read Temperature\n"
                  "  -h, --humidity                  Read Humidity\n"
-                 "  -p, --pressure                  Read Pressure\n"
+                 "  -p, --pressure                  Read Pressure (default)\n"
                  "  -n, --name                      Read Sensor name\n"
                  "  -a, --all                       Read Temperature, Humidity and Pressure\n"
                  "  -j, --json                      Result in JSON string\n"
+                 "  -P, --hPA                       Show pressure in hPa\n"
                  );
     printf ("\n");
     printf ("\n");
@@ -187,6 +189,7 @@ static struct option KLongOptions[] =
     { "temperature", no_argument, NULL, 't'},
     { "humidity", no_argument, NULL, 'h'},
     { "pressure", no_argument, NULL, 'p'},
+    { "hPA", no_argument, NULL, 'p'},
     { "name", no_argument, NULL, 'n'},
     { "all", no_argument, NULL, 'a'},
     { "json", no_argument, NULL, 'j'},
@@ -199,7 +202,7 @@ static int ExtractParam (void)
 
     while (1)
     {
-        i = getopt_long (gArgCnt, gArgList, "vd:thpajn", KLongOptions, NULL);
+        i = getopt_long (gArgCnt, gArgList, "vd:thpajnP", KLongOptions, NULL);
         if (i == EOF)
             break;
         switch (i)
@@ -221,6 +224,10 @@ static int ExtractParam (void)
                 gReadTemperature    = false;
                 gReadHumidity       = false;
                 gReadPressure       = true;
+                break;
+
+            case 'P':
+                gPressure_hPa       = true;
                 break;
 
             case 'n':
@@ -572,14 +579,14 @@ int Go (void)
             if (isnan (temperature))
                 printf ("\"temperature\": null");
             else
-                printf ("\"temperature\": %.1f", temperature);
+                printf ("\"temperature\": %.2f", temperature);
         }
         else
         {
             if (isnan (temperature))
                 printf ("%s\n", KStrNan);
             else
-                printf ("%.1f\n", temperature);
+                printf ("%.2f\n", temperature);
         }
     }
 
@@ -595,14 +602,14 @@ int Go (void)
             if (isnan (humidity))
                 printf ("\"humidity\": null");
             else
-                printf ("\"humidity\": %.1f", humidity);
+                printf ("\"humidity\": %.2f", humidity);
         }
         else
         {
             if (isnan (humidity))
                 printf ("%s\n", KStrNan);
             else
-                printf ("%.1f\n", humidity);
+                printf ("%.2f\n", humidity);
         }
     }
 
@@ -611,6 +618,8 @@ int Go (void)
     {
         if (port_opened)
             pressure = GetPressure ();
+        if (gPressure_hPa)
+            pressure = pressure / 100;
         if (gJsonFormat)
         {
             if ((gReadTemperature) || (gReadHumidity))
@@ -618,14 +627,14 @@ int Go (void)
             if (isnan (pressure))
                 printf ("\"pressure\": null");
             else
-                printf ("\"pressure\": %.1f", pressure);
+                printf ("\"pressure\": %.2f", pressure);
         }
         else
         {
             if (isnan (pressure))
                 printf ("%s\n", KStrNan);
             else
-                printf ("%.1f\n", pressure);
+                printf ("%.2f\n", pressure);
         }
     }
 
