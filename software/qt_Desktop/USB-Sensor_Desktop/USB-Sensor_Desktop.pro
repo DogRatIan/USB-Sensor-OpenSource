@@ -19,10 +19,6 @@ QML_IMPORT_PATH =
 # Additional import path used to resolve QML modules just for Qt Quick Designer
 QML_DESIGNER_IMPORT_PATH =
 
-# Add DEBUG for debug.cpp
-#CONFIG(release, debug|release):DEFINES += DEBUG=0 QT_NO_DEBUG_OUTPUT=1 QT_NO_WARNING_OUTPUT=1
-#else:CONFIG(debug, debug|release):DEFINES += DEBUG=1
-
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
@@ -84,7 +80,9 @@ CONFIG(debug, debug|release) {
 
 CONFIG(release, debug|release) {
     DEFINES += DEBUG=0 QT_NO_DEBUG_OUTPUT=1 QT_NO_WARNING_OUTPUT=1
-    RESOURCES += qml.qrc    
+    RESOURCES += qml.qrc
+
+    copyToDestDir($$PWD/assets/app_icon.png, $$OUT_PWD/release/)
 }
 
 # Generate git hash to output directory

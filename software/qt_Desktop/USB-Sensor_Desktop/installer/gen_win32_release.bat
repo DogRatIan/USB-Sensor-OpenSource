@@ -60,6 +60,7 @@ mkdir "%BIN_DIR%"
 REM Copy exe to bin directory
 xcopy "%RELEASE_DIR%\release\*.exe" "%BIN_DIR%" /y /e /q
 xcopy "%APP_DIR%\assets\app_icon.ico" "%DATA_DIR%" /y /e /q
+xcopy "%APP_DIR%\assets\app_icon.ico" "%BIN_DIR%" /y /q
 
 REM Use deploy tools to prepare all library
 cd /d "%BIN_DIR%"

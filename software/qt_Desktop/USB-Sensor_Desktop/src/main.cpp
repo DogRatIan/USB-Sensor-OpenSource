@@ -26,8 +26,8 @@ int main(int argc, char *argv[])
     qputenv ("QT_QUICK_CONTROLS_CONF", "./resources/qtquickcontrols2.conf");
     engine.load(QStringLiteral("./resources/qml/Main.qml"));
 #else
-    app.setWindowIcon (QIcon("qrc:/assets/app_icon.ico"));
     engine.load(QUrl(QStringLiteral("qrc:/qml/Main.qml")));
+    app.setWindowIcon (QIcon(QCoreApplication::applicationDirPath () + "/app_icon.png"));
 #endif
 
     if (engine.rootObjects().isEmpty())

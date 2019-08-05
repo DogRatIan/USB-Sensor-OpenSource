@@ -19,7 +19,7 @@ ApplicationWindow {
     //==========================================================================
     // Properties
     //==========================================================================
-    property string programVersion: "V1.00beta"
+    property string programVersion: "V1.01"
     property string gitHash: " "
 
     property var viewMessageLog
