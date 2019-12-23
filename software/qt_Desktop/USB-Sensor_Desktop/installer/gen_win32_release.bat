@@ -15,15 +15,15 @@ SET CURR_DIR=%CD%
 REM Set project variables
 SET APP_NAME=USB-Sensor_Desktop
 SET APP_EXE_NAME=%APP_NAME%.exe
-SET RELEASE_DIR=D:\Temp\_QtBuild\build-%APP_NAME%-Desktop_Qt_5_11_3_MinGW_32bit-Release
+SET RELEASE_DIR=D:\Temp\_QtBuild\build-%APP_NAME%-Desktop_Qt_5_12_4_MinGW_32_bit-Release
 SET INSTALLER_DIR=%RELEASE_DIR%\installer_win32
 SET DATA_DIR=%INSTALLER_DIR%\packages\com.dogratian.app\data
 SET BIN_DIR=%DATA_DIR%\bin
 SET PROTABLE_DIR=%INSTALLER_DIR%\%APP_NAME%_Protable
 
 REM Set tools location
-SET QT_DIR=C:\Qt\5.11.3\mingw53_32
-SET IFW_LOC=C:\Qt\Tools\QtInstallerFramework\3.0\bin
+SET QT_DIR=C:\Qt\5.12.4\mingw73_32
+SET IFW_LOC=C:\Qt\Tools\QtInstallerFramework\3.1\bin
 
 REM Get top app directory
 cd ..
