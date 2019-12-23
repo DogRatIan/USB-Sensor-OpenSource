@@ -101,7 +101,7 @@ bool CStatistic::init (void) {
                 continue;
 
             QString table_name = value_name + "_1min";
-            sql = QString ("CREATE TABLE IF NOT EXISTS %1_1min (timestamp INTEGER PRIMARY KEY UNIQUE NOT NULL,"
+            sql = QString ("CREATE TABLE IF NOT EXISTS %1 (timestamp INTEGER PRIMARY KEY UNIQUE NOT NULL,"
                     "avg REAL, max REAL,min REAL);").arg (table_name);
             DEBUG_PRINTF ("SQL:%s", sql.toUtf8().data());
             database.execute (qUtf8Printable(sql));
