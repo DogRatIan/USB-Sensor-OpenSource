@@ -6,12 +6,12 @@
 
 //==========================================================================
 //==========================================================================
-#define STR_PRJ_NAME1_(x)       #x
-#define STR_PRJ_NAME_(x)        STR_PRJ_NAME1_(x)
-#define STR_PROGNAME            STR_PRJ_NAME_(PRJ_NAME)
+#define STR_PRJ_NAME1_(x) #x
+#define STR_PRJ_NAME_(x) STR_PRJ_NAME1_(x)
+#define STR_PROGNAME STR_PRJ_NAME_(PRJ_NAME)
 
-#define STR_VERSION             "V1.01.00"
-#define STR_COPYRIGHT           "Copyright 2012-2016 DogRatIan"
+#define STR_VERSION "V1.02.00"
+#define STR_COPYRIGHT "Copyright DogRatIan"
 
 //==========================================================================
 // Version Informations
@@ -22,7 +22,11 @@
 /*
     History
    ------------------------------------------------------------------------
-    2010-JAN-01 (Version 1.00.00)
+    2019-DEC-21 (Version 1.02.00)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    1) Add retry on open port, get reading.
+
+    2010-JAN-01 (Version 1.01.00)
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      1) Changed.    Accept lower case on device name under MSW.
 

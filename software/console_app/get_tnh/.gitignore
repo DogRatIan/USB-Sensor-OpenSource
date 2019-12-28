@@ -1,4 +1,3 @@
-/lst
-/obj
-/get_tnh_msw.exe
-/get_tnh_linux
+/output_linux
+/output_mingw
+/*.log
