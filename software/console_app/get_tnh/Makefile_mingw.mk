@@ -35,6 +35,7 @@ CROSS_PREFIX=i686-w64-mingw32-
 CROSS_COMPILE=1
 
 OUT_FILE=$(BUILDDIR)/$(PRJ_NAME)_msw.exe
+RES_SRC=resfile.rc
 
 ###################################################
 # Source file list
@@ -49,6 +50,7 @@ A_SRC=$(notdir $(wildcard $(SRCDIR)/*.s))
 C_OBJ=$(addprefix $(BUILDDIR)/, $(C_SRC:.c=.o))
 CPP_OBJ=$(addprefix $(BUILDDIR)/, $(CPP_SRC:.cpp=.o))
 A_OBJ=$(addprefix $(BUILDDIR)/, $(A_SRC:.s=.o))
+RES_OBJ=$(addprefix $(BUILDDIR)/, $(RES_SRC:.rc=.o))
 
 ###################################################
 # Tools setup
@@ -69,6 +71,9 @@ LFLAGS=-static $(addprefix -l, $(EXTRA_LIBS))
 AR=$(CROSS_PREFIX)ar
 ARFLAGS=-rc
 
+RC=$(CROSS_PREFIX)windres
+RCFLAGS=--use-temp-file
+
 ###################################################
 ###################################################
 
@@ -77,7 +82,7 @@ ARFLAGS=-rc
 ###################################################
 # Link file
 ###################################################
-OBJS=$(A_OBJ) $(C_OBJ) $(CPP_OBJ) $(COMMON_OBJ)
+OBJS=$(A_OBJ) $(C_OBJ) $(CPP_OBJ) $(COMMON_OBJ) $(RES_OBJ)
 
 $(OUT_FILE) : $(BUILDDIR) $(OBJS)
 	@echo .
@@ -116,6 +121,13 @@ $(BUILDDIR)/common_%.o : ../common/%.cpp
 $(BUILDDIR)/%.o : $(SRCDIR)/%.c
 	@echo [$<]
 	@$(CC) $(CFLAGS) $< -o $@ -Wa,-a=$(BUILDDIR)/$(@F:.o=.lst)
+
+###################################################
+# Compile RES files
+###################################################
+$(BUILDDIR)/%.o : $(SRCDIR)/%.rc
+	@echo [$<]
+	@$(RC) $(RCFLAGS) -o $@ $<
 
 ###################################################
 # Clear all output files
