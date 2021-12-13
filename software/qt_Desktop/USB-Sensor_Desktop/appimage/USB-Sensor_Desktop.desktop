@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=USB-Sensor
+Comment=DogRatIan USB Sensor example application
+Exec=USB-Sensor_Desktop
+Icon=app_icon
+Categories=Development;

@@ -2,14 +2,25 @@
 
 Here are the desktop programs that written by Qt.
 
-# Tested build environment
 
-## Under Windows
+
+## Linux (Ubuntu 20.4)
+
+- Qt 5.15 (Community version)
+
+
+
+At build directory, run the ```gen_AppImage.sh``` script to generate the App Image.
+
+
+
+## Windows
+
 - Qt 5.11.3 (Community version)
 - Qt Installer Framework 3.0
 - ImageMagick 7.0.8
 
-  <b>QT Creator default build directory:</b>
+**Example for the QT Creator default build directory:**
 
 ```
 D:/Temp/_QtBuild/%{JS: Util.asciify("build-%{CurrentProject:Name}-%{CurrentKit:FileSystemName}-%{CurrentBuild:Name}")}

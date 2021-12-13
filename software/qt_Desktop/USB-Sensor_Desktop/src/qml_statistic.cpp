@@ -28,6 +28,7 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QDateTime>
+#include <QStandardPaths>
 #include <cmath>
 
 #include "debug.h"
@@ -84,6 +85,7 @@ bool CStatistic::init (void) {
         averageList.clear();
 
         // Connecto to database file
+        DEBUG_PRINTF ("Database=%s", path.toUtf8().data());
         auto conn_ret = database.connect (path.toUtf8().data(), SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nullptr);
         if (conn_ret != SQLITE_OK) {
             emit errorMessage ("Can't connect database.");
@@ -378,6 +380,18 @@ QList<QString> CStatistic::readValueUnits (void) {
 //==========================================================================
 QString CStatistic::getPath (void) {
     QString path = QCoreApplication::applicationDirPath();
+
+    QStringList list = QStandardPaths::standardLocations(QStandardPaths::AppDataLocation);
+    if (list.size() > 0) {
+        path = list.first();
+
+        QDir dir = QDir(path);
+        if (!dir.exists()) {
+            if (!dir.mkpath(path)) {
+                DEBUG_PRINTF("mkpath() failed..");  
+            }
+        }
+    }
     path.append (QDir::separator());
     path.append (readFilename());
     return path;

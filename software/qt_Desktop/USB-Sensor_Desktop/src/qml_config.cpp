@@ -29,6 +29,7 @@
 #include <QDir>
 #include <QCoreApplication>
 #include <QJsonDocument>
+#include <QStandardPaths>
 
 #include "debug.h"
 
@@ -219,6 +220,18 @@ void CConfig::writeFilename (QString aValue) {
 //==========================================================================
 QString CConfig::getPath (void) {
     QString path = QCoreApplication::applicationDirPath();
+
+    QStringList list = QStandardPaths::standardLocations(QStandardPaths::AppDataLocation);
+    if (list.size() > 0) {
+        path = list.first();
+    
+        QDir dir = QDir(path);
+        if (!dir.exists()) {
+            if (!dir.mkpath(path)) {
+                DEBUG_PRINTF("mkpath() failed..");  
+            }
+        }
+    }
     path.append (QDir::separator());
     if (currentFilename.length() <= 0)
         path.append (DEFAULT_CONFIG_FILENAME);

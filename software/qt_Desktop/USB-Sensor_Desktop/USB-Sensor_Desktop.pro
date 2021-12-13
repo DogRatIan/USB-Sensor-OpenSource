@@ -39,10 +39,10 @@ HEADERS += \
     src/qml_statistic.h \
     src/qml_config.h
 
-INCLUDEPATH += ..\SharedLibrary\release
+INCLUDEPATH += $$PWD/../SharedLibrary/release
 
 win32: LIBS+= -L$$PWD/../SharedLibrary/release -lShared_mingw_32
-
+linux: LIBS+= -L$$PWD/../SharedLibrary/release -lShared_linux_64 -ldl
 
 # Application icon for win32
 RC_ICONS = assets/app_icon.ico
@@ -82,8 +82,11 @@ CONFIG(release, debug|release) {
     DEFINES += DEBUG=0 QT_NO_DEBUG_OUTPUT=1 QT_NO_WARNING_OUTPUT=1
     RESOURCES += qml.qrc
 
-    copyToDestDir($$PWD/assets/app_icon.png, $$OUT_PWD/release/)
+    copyToDestDir($$PWD/assets/app_icon.png, $$OUT_PWD/)
+    copyToDestDir($$PWD/appimage/USB-Sensor_Desktop.desktop, $$OUT_PWD/)
+    copyToDestDir($$PWD/appimage/gen_AppImage.sh, $$OUT_PWD/)
 }
 
 # Generate git hash to output directory
 QMAKE_PRE_LINK += cd \""$$_PRO_FILE_PWD_"\" && sh gen_git_hash.sh \""$$OUT_PWD"\"
+QMAKE_POST_LINK += echo \""$$_PRO_FILE_PWD_"\" > \""$$OUT_PWD"/project_root.txt\" && echo \""$$QMAKE_QMAKE"\" > \""$$OUT_PWD"/qmake_bin.txt\"
