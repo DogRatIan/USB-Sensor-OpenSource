@@ -236,7 +236,7 @@ bool CUsbSensor::testPort (QString aPortName) {
         if (str_resp.startsWith ("USB-TnH")) {
             currentDeviceId = str_resp;
             currentDeviceType = "USB-TnH";
-            if (!str_resp.contains ("SHT30")) {
+            if ((!str_resp.contains ("SHT30"))  && (!str_resp.contains ("SHT40"))) {
                 usingOldTnHGet = true;
             }
 //            currentHasTemperature = true;
